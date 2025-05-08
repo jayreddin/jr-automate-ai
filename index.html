@@ -1,0 +1,4530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Automation Builder</title>
+    <script src="https://js.puter.com/v2/"></script>
+
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #333333;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent-primary: #007acc;
+            --accent-secondary: #005999;
+            --node-bg: #363636;
+            --node-border: #4a4a4a;
+            --connection-color: #4a9eff;
+            --error-color: #ff4a4a;
+            --success-color: #4aff4a;
+            --glow-color: #3bff3b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Dynamic node styling will be inserted here by JavaScript */
+
+
+        .header {
+            background-color: var(--bg-secondary);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--node-border);
+            z-index: 100;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .flow-selector {
+            position: relative;
+            width: 250px;
+        }
+
+        .flow-input {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--node-border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .flow-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--node-border);
+            border-radius: 4px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .flow-dropdown.show {
+            display: block;
+        }
+
+        .flow-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--node-border);
+        }
+
+        .flow-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .flow-item-name {
+            flex: 1;
+        }
+
+        .flow-item-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-primary);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent-secondary);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Run Flow Button Animation */
+        .btn.run {
+    background-color: rgba(59, 255, 59, 0.2);
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(59, 255, 59, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn.run:hover {
+    background-color: rgba(59, 255, 59, 0.3);
+    box-shadow: 0 0 15px rgba(59, 255, 59, 0.3);
+}
+
+/* Animated borders */
+.btn.run::before,
+.btn.run::after,
+.btn.run .border-bottom,
+.btn.run .border-left {
+    content: '';
+    position: absolute;
+}
+
+/* Top border */
+.btn.run::before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--glow-color));
+    animation: borderTop 2s linear infinite;
+}
+
+/* Right border */
+.btn.run::after {
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, var(--glow-color));
+    animation: borderRight 2s linear infinite;
+    animation-delay: 1s;
+}
+
+/* Bottom border */
+.btn.run .border-bottom {
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(270deg, transparent, var(--glow-color));
+    animation: borderBottom 2s linear infinite;
+}
+
+/* Left border */
+.btn.run .border-left {
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(0deg, transparent, var(--glow-color));
+    animation: borderLeft 2s linear infinite;
+    animation-delay: 1s;
+}
+
+        @keyframes borderTop {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes borderRight {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        @keyframes borderBottom {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes borderLeft {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(-100%);
+            }
+        }
+
+        /* Stop button style */
+        .btn.stop {
+            background: var(--error-color);
+            box-shadow: none;
+            overflow: visible;
+        }
+
+        .btn.stop:hover {
+            background: var(--error-color);
+            opacity: 0.9;
+        }
+
+        /* Remove animations when in stop mode */
+        .btn.stop::before,
+        .btn.stop::after,
+        .btn.stop .border-top,
+        .btn.stop .border-bottom,
+        .btn.stop .border-left {
+            display: none;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--node-border);
+            padding: 1rem;
+            overflow-y: auto;
+            scrollbar-width: thin !important;
+            scrollbar-color: var(--bg-tertiary) var(--bg-secondary) !important;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-secondary) !important;
+            border-radius: 4px !important;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary) !important;
+            border-radius: 4px !important;
+            border: 2px solid var(--bg-secondary) !important;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-primary) !important;
+        }
+
+        .node-type-group {
+            margin-bottom: 1rem;
+        }
+
+        .node-type-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .node-type {
+            padding: 0.75rem;
+            background: var(--node-bg);
+            border: 1px solid var(--node-border);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .node-type:hover {
+            transform: translateX(5px);
+        }
+
+        .node-type-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .workspace-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .workspace {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background-color: var(--bg-primary);
+
+            background-image: radial-gradient(circle, var(--bg-secondary) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .canvas-content {
+            min-width: 100%;
+            min-height: 100%;
+            position: relative;
+            top: 0;
+            left: 0;
+            transform-origin: top left;
+        }
+
+        .output-panel {
+            width: 300px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--node-border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-panel-header {
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--node-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            padding: 0.25rem;
+            background: none;
+        }
+
+        .clear-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .output-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+            scrollbar-width: thin !important;
+            scrollbar-color: var(--bg-tertiary) var(--bg-secondary) !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary) !important;
+            border-radius: 4px !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary) !important;
+            border-radius: 4px !important;
+            border: 2px solid var(--bg-secondary) !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-primary) !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary) !important;
+            border-radius: 4px !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary) !important;
+            border-radius: 4px !important;
+            border: 2px solid var(--bg-secondary) !important;
+        }
+
+        .output-panel-content::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-primary) !important;
+        }
+
+        .status-bar {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--node-border);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Left section (status text) */
+        #statusText {
+            flex: 1;
+            text-align: left;
+        }
+
+        /* Center section (logging button) */
+        .status-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Right section (empty, for balance) */
+        .status-right {
+            flex: 1;
+        }
+
+        /* Button styling */
+        .status-btn {
+            background: rgba(255, 255, 255, 0.1); /* Light gray when ON */
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 3px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .status-btn.off {
+            background: rgba(0, 0, 0, 0.3); /* Darker gray when OFF */
+        }
+
+        .status-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .node {
+            position: absolute;
+            min-width: 220px;
+            background: var(--node-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            /* Above connections by default */
+        }
+
+        .node-header {
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--node-border);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .node-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .node-icon {
+            font-size: 1.25rem;
+        }
+
+        .node-close {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .node-close:hover {
+            background: var(--bg-secondary);
+            opacity: 1;
+        }
+
+        .node-content {
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .connectors-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .connector {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--connection-color);
+            border-radius: 50%;
+            cursor: pointer;
+            pointer-events: all;
+            z-index: 15;
+            /* Above connection lines, but below active nodes */
+        }
+
+        /* Input connectors at the top */
+        .connector.input {
+            top: -6px;
+        }
+
+        /* Output connectors at the bottom */
+        .connector.output {
+            bottom: -6px;
+        }
+
+        /* Position connectors horizontally based on their index and total count */
+        .connector[data-index="0"][data-count="1"] {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .connector[data-index="0"][data-count="2"] {
+            left: 33%;
+            transform: translateX(-50%);
+        }
+
+        .connector[data-index="1"][data-count="2"] {
+            left: 67%;
+            transform: translateX(-50%);
+        }
+
+        .connector[data-index="0"][data-count="3"] {
+            left: 25%;
+            transform: translateX(-50%);
+        }
+
+        .connector[data-index="1"][data-count="3"] {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .connector[data-index="2"][data-count="3"] {
+            left: 75%;
+            transform: translateX(-50%);
+        }
+
+        .connector:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Connection line styles */
+        .connection-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            /* Below nodes */
+        }
+
+        .connection {
+            position: absolute;
+            z-index: 5;
+        }
+
+        .connection path {
+            stroke: var(--connection-color);
+            stroke-width: 2;
+            fill: none;
+            cursor: pointer;
+        }
+
+        .connection path:hover {
+            stroke: var(--accent-primary);
+            stroke-width: 3;
+        }
+
+        .temp-connection {
+            pointer-events: none;
+        }
+
+        /* Node input styles */
+        .node-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--node-border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 100%;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .node-select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--node-border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        .node-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Execution states */
+        .node.executing {
+            box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.7);
+            animation: pulse-green-glow 1.5s infinite alternate;
+        }
+
+        /* Add this new animation */
+        @keyframes pulse-green-glow {
+            0% {
+                box-shadow: 0 0 5px 2px rgba(34, 197, 94, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 15px 5px rgba(34, 197, 94, 0.8);
+            }
+        }
+
+        .node.success {
+            box-shadow: 0 0 0 2px var(--success-color);
+        }
+
+        .node.error {
+            box-shadow: 0 0 0 2px var(--error-color);
+        }
+
+        /* Base output message styles */
+        .output-message {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            text-align: left;
+            /* Ensure left alignment */
+        }
+
+        .output-message.success {
+            border-left: 3px solid var(--success-color);
+        }
+
+        .output-message.error {
+            border-left: 3px solid var(--error-color);
+        }
+
+        /* System message styling */
+        .output-message.system-message {
+            margin-bottom: 0.25rem;
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border-left: none;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-bottom: none;
+        }
+
+        /* Node output styling */
+        .node-output-container {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            /* Ensure left alignment */
+            width: 100%;
+            /* Take full width */
+        }
+
+        .node-header-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            width: 100%;
+            /* Take full width */
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #6e7681;
+        }
+
+        .node-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .output-type {
+            color: #6e7681;
+            font-size: 0.8rem;
+        }
+
+        .node-content-line {
+            margin-top: 4px;
+            padding-left: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            text-align: left !important;
+            /* Force left alignment */
+            width: 100%;
+            /* Take full width */
+        }
+
+        /* Styling for system messages (flow state notifications) */
+        .output-message.info:not([data-node-id]) {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border-left: none;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-bottom: 1px dotted var(--bg-tertiary);
+        }
+
+        .output-message.info:not([data-node-id]) .output-message-header {
+            opacity: 0.7;
+        }
+
+        .output-message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .output-message-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* CSS for zoom controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 3px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .zoom-btn:hover {
+            background: var(--accent-primary);
+        }
+
+        #zoomResetBtn {
+            width: auto;
+            padding: 0 8px;
+            font-size: 12px;
+        }
+
+        #zoomLevel {
+            font-size: 12px;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        /* CSS for improved username display */
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            padding: 4px 12px 4px 4px;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .user-avatar svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Modern scrollbars for the workspace */
+        .workspace::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .workspace::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        .workspace::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .workspace::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-primary);
+        }
+
+        /* For Firefox */
+        .workspace {
+            scrollbar-width: thin;
+            scrollbar-color: var(--bg-tertiary) var(--bg-primary);
+        }
+
+        .connection-delete-btn {
+            width: 22px;
+            height: 22px;
+            background-color: var(--error-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            pointer-events: auto;
+        }
+
+        .connection-delete-btn:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5);
+        }
+
+        #username {
+            font-weight: 500;
+        }
+
+        /* Modal styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .confirmation-modal.active {
+            display: flex;
+        }
+
+        .confirmation-modal .modal-content {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            min-width: 320px;
+            max-width: 90%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: scaleIn 0.2s ease-out;
+            overflow: hidden;
+        }
+
+        .confirmation-modal .modal-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--node-border);
+        }
+
+        .confirmation-modal .modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .confirmation-modal .modal-body {
+            padding: 1rem;
+        }
+
+        .confirmation-modal .modal-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--node-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .confirmation-modal #modalCancelBtn {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .confirmation-modal #modalConfirmBtn {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .output-message.system-message .output-message-header {
+            opacity: 0.7;
+        }
+
+        .output-message.system-message .output-message-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Node output content styling */
+        .output-message:not(.system-message) .output-message-content {
+            margin-top: 0.5rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .node-info {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Keep the current styling for content outputs */
+        .output-message:not(.system-message) {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .output-message.success:not(.system-message) {
+            border-left-color: var(--success-color);
+        }
+
+        .output-message.error:not(.system-message) {
+            border-left-color: var(--error-color);
+        }
+
+
+
+
+
+        /* Not-ready state - only border animations, no background */
+.btn.run.not-ready {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.btn.run.not-ready:hover {
+    background-color: rgba(59, 255, 59, 0.1);
+    box-shadow: 0 0 5px rgba(59, 255, 59, 0.1);
+}
+
+
+    </style>
+
+
+
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="toolbar">
+            <div class="flow-selector">
+                <input type="text" class="flow-input" placeholder="Type or select flow name..." id="flowNameInput">
+                <div class="flow-dropdown" id="flowsList"></div>
+            </div>
+
+            <button class="btn" id="undoBtn" title="Undo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7v6h6"></path>
+                    <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path>
+                </svg>
+            </button>
+
+            <button class="btn" id="redoBtn" title="Redo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 7v6h-6"></path>
+                    <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"></path>
+                </svg>
+            </button>
+
+            <button class="btn" id="saveFlowBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Save Flow
+            </button>
+
+
+     
+            
+
+
+
+            <button class="btn run" id="runFlowBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21" fill="currentColor"></polygon>
+                </svg>
+                Run Flow
+                <span class="border-bottom"></span>
+                <span class="border-left"></span>
+            </button>
+        </div>
+
+        <!-- Replace the existing auth-section -->
+        <div class="auth-section">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <span id="username"></span>
+            </div>
+            <button class="btn" id="resetBtn">Reset</button>
+            <button class="btn" id="authBtn">Sign In</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="node-type-group">
+                <div class="node-type-title">Basic</div>
+                <div class="node-type" draggable="true" data-type="start">
+                    <div class="node-type-icon">🚀</div>
+                    <span>Start</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="ai">
+                    <div class="node-type-icon">🤖</div>
+                    <span>AI</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="condition">
+                    <div class="node-type-icon">⚡</div>
+                    <span>Condition</span>
+                </div>
+            </div>
+
+            <div class="node-type-group">
+                <div class="node-type-title">Data & Files</div>
+                <div class="node-type" draggable="true" data-type="file">
+                    <div class="node-type-icon">📁</div>
+                    <span>File Operations</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="transform">
+                    <div class="node-type-icon">🔄</div>
+                    <span>Transform</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="data">
+                    <div class="node-type-icon">📊</div>
+                    <span>Data Store</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="randomizer">
+                    <div class="node-type-icon">🎲</div>
+                    <span>Randomizer</span>
+                </div>
+            </div>
+
+            <div class="node-type-group">
+                <div class="node-type-title">Automation</div>
+                <div class="node-type" draggable="true" data-type="delay">
+                    <div class="node-type-icon">⏲️</div>
+                    <span>Delay</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="loop">
+                    <div class="node-type-icon">🔁</div>
+                    <span>Loop</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="prompt">
+                    <div class="node-type-icon">💭</div>
+                    <span>Prompt</span>
+                </div>
+            </div>
+
+            <div class="node-type-group">
+                <div class="node-type-title">Web & Media</div>
+                <div class="node-type" draggable="true" data-type="site-builder">
+                    <div class="node-type-icon">🌐</div>
+                    <span>Site Builder</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="text-to-image">
+                    <div class="node-type-icon">🎨</div>
+                    <span>Text to Image</span>
+                </div>
+                <div class="node-type" draggable="true" data-type="speech">
+                    <div class="node-type-icon">🔊</div>
+                    <span>Text to Speech</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace-container">
+            <div class="workspace" id="workspace"></div>
+
+            <div class="output-panel">
+                <div class="output-panel-header">
+                    <span>Output Log</span>
+                    <button class="btn clear-btn" id="clearLogBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="output-panel-content" id="outputLog"></div>
+            </div>
+
+
+            <!-- Add this to the HTML before the closing workspace div -->
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomOutBtn">-</button>
+                <span id="zoomLevel">100%</span>
+                <button class="zoom-btn" id="zoomInBtn">+</button>
+                <button class="zoom-btn" id="zoomResetBtn">Reset</button>
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span id="statusText">Ready</span>
+        <div class="status-center">
+            <button id="toggleLoggingBtn" class="status-btn">
+                Console Logging: ON
+            </button>
+        </div>
+        <div class="status-right">
+            <!-- Empty div to balance the flex space -->
+        </div>
+    </div>
+
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Delete Flow</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Are you sure you want to delete this flow?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCancelBtn" class="btn">Cancel</button>
+                <button id="modalConfirmBtn" class="btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script type="module">
+
+        import startNode from './nodes/start.js';
+        import randomizerNode from './nodes/randomizer.js';
+        import aiNode from './nodes/ai.js';
+        import conditionNode from './nodes/condition.js';
+        import transformNode from './nodes/transform.js';
+        import fileNode from './nodes/file.js';
+        import delayNode from './nodes/delay.js';
+        import dataNode from './nodes/data.js';
+        import siteBuilderNode from './nodes/siteBuilder.js';
+        import textToImageNode from './nodes/textToImage.js';
+        import promptNode from './nodes/prompt.js';
+        import loopNode from './nodes/loop.js';
+        import speechNode from './nodes/speech.js';
+        import emailNode from './nodes/email.js';
+        import formNode from './nodes/form.js';
+
+
+
+        /**
+         * Node Registry - Manages node types and their configurations
+         */
+        class NodeRegistry {
+            constructor() {
+                this.nodeTypes = new Map();
+                this.registerBuiltInNodes();
+            }
+
+            /**
+             * Register a node type
+             * @param {string} type - Node type identifier
+             * @param {Object} config - Node configuration
+             */
+            register(type, config) {
+                if (this.nodeTypes.has(type)) {
+                    console.warn(`Node type '${type}' is already registered. Overwriting...`);
+                }
+                this.nodeTypes.set(type, config);
+
+                // Add styling for this node type
+                this.addNodeTypeStyles(type, config);
+            }
+
+            /**
+             * Get a node type configuration
+             * @param {string} type - Node type identifier
+             * @returns {Object} Node configuration
+             */
+            getNodeType(type) {
+                return this.nodeTypes.get(type);
+            }
+
+
+
+
+            // Add this method to your NodeRegistry class
+            register(type, config) {
+                if (this.nodeTypes.has(type)) {
+                    console.warn(`Node type '${type}' is already registered. Overwriting...`);
+                }
+                this.nodeTypes.set(type, config);
+
+                // Add styling for this node type
+                this.addNodeTypeStyles(type, config);
+
+                // Update sidebar with new node
+                if (window.flowBuilder) {
+                    window.flowBuilder.initializeSidebar();
+                }
+            }
+
+
+
+            addNodeTypeStyles(type, config) {
+                // Get or create the style element for dynamic node styles
+                let styleEl = document.getElementById('dynamic-node-styles');
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = 'dynamic-node-styles';
+                    document.head.appendChild(styleEl);
+                }
+
+                // Get the color from the node config
+                const color = config.color || 'var(--accent-primary)';
+
+                // Create CSS rules for this node type
+                const css = `
+        .node[data-type="${type}"] {
+            border: 2px solid ${color};
+        }
+        .node[data-type="${type}"] .node-title {
+            color: ${color};
+        }
+    `;
+
+                // Add the CSS rules to the style element
+                styleEl.textContent += css;
+            }
+
+
+
+
+            /**
+             * Register built-in node types
+             */
+            registerBuiltInNodes() {
+
+
+
+
+                // Start Node
+                this.register('start', startNode);
+
+                // Randomizer Node
+                this.register('randomizer', randomizerNode);
+
+                // AI Node
+                this.register('ai', aiNode);
+
+                // Condition Node
+                this.register('condition', conditionNode);
+
+                // Transform Node
+                this.register('transform', transformNode);
+
+                // File Node
+                this.register('file', fileNode);
+
+                // Delay Node
+                this.register('delay', delayNode);
+
+                // Data Store Node
+                this.register('data', dataNode);
+
+                // Site Builder Node
+                this.register('site-builder', siteBuilderNode);
+
+                // Text to Image Node
+                this.register('text-to-image', textToImageNode);
+
+                // Prompt Node
+                this.register('prompt', promptNode);
+
+                // Loop Node
+                this.register('loop', loopNode);
+
+                // Text to Speech Node
+                this.register('speech', speechNode);
+
+                // Email Node
+                this.register('email', emailNode);
+
+                // Form Node
+                this.register('form', formNode);
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }
+        }
+
+        /**
+         * Flow Builder - Main application class
+         */
+        class FlowBuilder {
+            constructor() {
+                this.workspace = document.getElementById('workspace');
+                this.outputLog = document.getElementById('outputLog');
+                this.nodes = new Map();
+                this.connections = new Map();
+                this.nodeCounter = 0;
+                this.undoStack = [];
+                this.redoStack = [];
+                this.selectedConnector = null;
+                this.hoveredTargetConnector = null;
+                this.closestTargetConnector = null;
+                this.tempConnection = null;
+                this.draggingNode = null;
+                this.zoomLevel = 1;
+                this.enableDetailedConsoleLogging = true;
+
+                // Initialize node registry
+                this.nodeRegistry = new NodeRegistry();
+
+                // Create canvas content first
+                const canvasContent = document.createElement('div');
+                canvasContent.className = 'canvas-content';
+                this.workspace.appendChild(canvasContent);
+
+                // Create connection container
+                this.connectionContainer = document.createElement('div');
+                this.connectionContainer.className = 'connection-container';
+                canvasContent.appendChild(this.connectionContainer);
+
+                // Set initial canvas styles
+                canvasContent.style.transform = `scale(${this.zoomLevel})`;
+                canvasContent.style.transformOrigin = 'top left';
+                canvasContent.style.width = `${100 / this.zoomLevel}%`;
+                canvasContent.style.height = `${100 / this.zoomLevel}%`;
+                canvasContent.style.position = 'absolute';
+
+                // Initialize sidebar with dynamically generated nodes
+                this.initializeSidebar();
+
+                // Initialize app
+                this.initializeEventListeners();
+                this.checkAuthStatus();
+
+                // Save initial state
+                this.saveState();
+                // Initialize activation manager
+                this.activationManager = new FlowActivationManager(this);
+
+                // Initialize run button state
+                this.updateRunButtonState();
+            }
+
+
+
+            // Add this function to your FlowBuilder class
+            // Add this function to your FlowBuilder class
+            initializeSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                if (!sidebar) return;
+
+                // Clear existing content
+                sidebar.innerHTML = '';
+
+                // Add node-specific styles for the sidebar
+                let sidebarStyleEl = document.getElementById('dynamic-sidebar-styles');
+                if (!sidebarStyleEl) {
+                    sidebarStyleEl = document.createElement('style');
+                    sidebarStyleEl.id = 'dynamic-sidebar-styles';
+                    document.head.appendChild(sidebarStyleEl);
+                }
+
+                // Reset styles
+                sidebarStyleEl.textContent = '';
+
+                // Group nodes by category
+                const nodesByCategory = new Map();
+
+                // Populate the category map from registered nodes
+                for (const [nodeType, nodeConfig] of this.nodeRegistry.nodeTypes.entries()) {
+                    const category = nodeConfig.category || 'Other';
+
+                    if (!nodesByCategory.has(category)) {
+                        nodesByCategory.set(category, []);
+                    }
+
+                    nodesByCategory.get(category).push({
+                        type: nodeType,
+                        config: nodeConfig
+                    });
+
+                    // Add the CSS for this node type to the style element
+                    const color = nodeConfig.color || '#6366f1'; // Default to accent color if not specified
+                    sidebarStyleEl.textContent += `
+            .node-type[data-type="${nodeType}"] {
+                position: relative;
+                overflow: hidden;
+                transition: all 0.2s ease;
+                border-radius: 6px;
+            }
+            
+            .node-type[data-type="${nodeType}"]::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 4px;
+                height: 100%;
+                background-color: ${color};
+                border-radius: 2px 0 0 2px;
+                opacity: 0.8;
+                transition: all 0.2s ease;
+            }
+            
+            .node-type[data-type="${nodeType}"]:hover {
+                background-color: rgba(99, 102, 241, 0.1);
+                transform: translateX(5px);
+            }
+            
+            .node-type[data-type="${nodeType}"]:hover::before {
+                width: 6px;
+                opacity: 1;
+            }
+            
+            .node-type[data-type="${nodeType}"] .node-type-icon {
+                color: ${color};
+                transition: transform 0.2s ease;
+            }
+            
+            .node-type[data-type="${nodeType}"]:hover .node-type-icon {
+                transform: scale(1.2);
+            }
+        `;
+                }
+
+                // Add general styles for categories and node types
+                sidebarStyleEl.textContent += `
+        .node-type-group {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .node-type-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            padding-left: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+        
+        .node-type {
+            padding: 0.75rem 0.75rem 0.75rem 1rem;
+            background: var(--node-bg);
+            border: 1px solid var(--node-border);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .node-type-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+
+                // Sort categories alphabetically (with 'Basic' always first)
+                const sortedCategories = Array.from(nodesByCategory.keys()).sort((a, b) => {
+                    if (a === 'Basic') return -1;
+                    if (b === 'Basic') return 1;
+                    return a.localeCompare(b);
+                });
+
+                // Create sidebar content for each category
+                for (const category of sortedCategories) {
+                    const nodes = nodesByCategory.get(category);
+
+                    // Create category group
+                    const categoryGroup = document.createElement('div');
+                    categoryGroup.className = 'node-type-group';
+                    categoryGroup.dataset.category = category.toLowerCase().replace(/\s+/g, '-');
+
+                    // Create category title
+                    const categoryTitle = document.createElement('div');
+                    categoryTitle.className = 'node-type-title';
+                    categoryTitle.textContent = category;
+                    categoryGroup.appendChild(categoryTitle);
+
+                    // Add nodes to the category group - sort alphabetically by title
+                    const sortedNodes = [...nodes].sort((a, b) => a.config.title.localeCompare(b.config.title));
+
+                    for (const node of sortedNodes) {
+                        const nodeElement = document.createElement('div');
+                        nodeElement.className = 'node-type';
+                        nodeElement.draggable = true;
+                        nodeElement.dataset.type = node.type;
+
+                        nodeElement.innerHTML = `
+                <div class="node-type-icon">${node.config.icon}</div>
+                <span>${node.config.title}</span>
+            `;
+
+                        // Add drag event
+                        nodeElement.addEventListener('dragstart', (e) => {
+                            e.dataTransfer.setData('type', node.type);
+                        });
+
+                        categoryGroup.appendChild(nodeElement);
+                    }
+
+                    sidebar.appendChild(categoryGroup);
+                }
+            }
+
+
+
+
+            /**
+             * Initialize event listeners
+             */
+            initializeEventListeners() {
+                // Workspace interactions
+                this.workspace.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.workspace.addEventListener('drop', this.handleDrop.bind(this));
+
+                // Node dragging
+                document.querySelectorAll('.node-type').forEach(element => {
+                    element.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('type', e.target.getAttribute('data-type'));
+                    });
+                });
+
+                // Button handlers
+                document.getElementById('saveFlowBtn').addEventListener('click', this.saveFlow.bind(this));
+                document.getElementById('runFlowBtn').addEventListener('click', this.runFlow.bind(this));
+                document.getElementById('undoBtn').addEventListener('click', this.undo.bind(this));
+                document.getElementById('redoBtn').addEventListener('click', this.redo.bind(this));
+                document.getElementById('clearLogBtn').addEventListener('click', this.clearLog.bind(this));
+                document.getElementById('authBtn').addEventListener('click', this.handleAuth.bind(this));
+
+                // Flow name input
+                const flowNameInput = document.getElementById('flowNameInput');
+                flowNameInput.addEventListener('focus', this.showFlowsList.bind(this));
+                flowNameInput.addEventListener('input', this.filterFlowList.bind(this));
+
+                // Global mouse events for connections
+                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+
+                // Handle clicks outside dropdown
+                document.addEventListener('click', (e) => {
+                    const dropdown = document.getElementById('flowsList');
+                    const input = document.getElementById('flowNameInput');
+                    if (!input.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.updateConnections();
+                });
+
+                // Zoom controls
+                document.getElementById('zoomInBtn').addEventListener('click', () => this.zoom(0.1));
+                document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoom(-0.1));
+                document.getElementById('zoomResetBtn').addEventListener('click', () => this.resetZoom());
+
+                // Mouse wheel zoom
+                this.workspace.addEventListener('wheel', (e) => {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+                        this.zoom(delta);
+                    }
+                });
+
+
+                // Reset button
+                document.getElementById('resetBtn').addEventListener('click', this.resetCanvas.bind(this));
+
+                // Add this to the initializeEventListeners method in the FlowBuilder class
+                document.getElementById('toggleLoggingBtn').addEventListener('click', this.toggleConsoleLogging.bind(this));
+
+
+            }
+
+
+
+
+
+
+
+            toggleConsoleLogging() {
+    this.enableDetailedConsoleLogging = !this.enableDetailedConsoleLogging;
+    const button = document.getElementById('toggleLoggingBtn');
+    
+    if (button) {
+        if (this.enableDetailedConsoleLogging) {
+            button.textContent = 'Console Logging: ON';
+            button.classList.remove('off');
+        } else {
+            button.textContent = 'Console Logging: OFF';
+            button.classList.add('off');
+        }
+    }
+}
+
+
+
+
+
+
+            // Add this method to the FlowBuilder class
+            logToConsole(level, nodeId, nodeType, message, data = null) {
+                if (!this.enableDetailedConsoleLogging) return;
+
+                const nodeTitle = nodeType?.title || 'Unknown Node';
+                const timestamp = new Date().toISOString();
+
+                const logPrefix = `[${timestamp}] [${nodeTitle} (${nodeId})]`;
+
+                switch (level) {
+                    case 'info':
+                        console.group(`${logPrefix} INFO`);
+                        console.info(message);
+                        if (data) console.info('Data:', data);
+                        console.groupEnd();
+                        break;
+                    case 'success':
+                        console.group(`${logPrefix} SUCCESS`);
+                        console.log('%c' + message, 'color: green');
+                        if (data) console.log('Data:', data);
+                        console.groupEnd();
+                        break;
+                    case 'warning':
+                        console.group(`${logPrefix} WARNING`);
+                        console.warn(message);
+                        if (data) console.warn('Data:', data);
+                        console.groupEnd();
+                        break;
+                    case 'error':
+                        console.group(`${logPrefix} ERROR`);
+                        console.error(message);
+                        if (data) console.error('Data:', data);
+                        console.groupEnd();
+                        break;
+                    default:
+                        console.group(`${logPrefix} LOG`);
+                        console.log(message);
+                        if (data) console.log('Data:', data);
+                        console.groupEnd();
+                }
+            }
+
+
+
+
+
+
+            /**
+ * Shows the help modal for a node
+ */
+            showNodeHelp(nodeId, nodeType) {
+                if (!nodeType.help) return;
+
+                const help = nodeType.help;
+
+                // Create modal container if it doesn't exist
+                let modalContainer = document.getElementById('node-help-modal-container');
+                if (!modalContainer) {
+                    modalContainer = document.createElement('div');
+                    modalContainer.id = 'node-help-modal-container';
+                    modalContainer.className = 'node-help-modal';
+                    modalContainer.style.position = 'fixed';
+                    modalContainer.style.top = '0';
+                    modalContainer.style.left = '0';
+                    modalContainer.style.width = '100%';
+                    modalContainer.style.height = '100%';
+                    modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                    modalContainer.style.display = 'flex';
+                    modalContainer.style.alignItems = 'center';
+                    modalContainer.style.justifyContent = 'center';
+                    modalContainer.style.zIndex = '2000';
+                    modalContainer.style.backdropFilter = 'blur(3px)';
+                    modalContainer.style.opacity = '0';
+                    modalContainer.style.visibility = 'hidden';
+                    modalContainer.style.transition = 'opacity 0.3s, visibility 0.3s';
+
+                    modalContainer.onclick = (e) => {
+                        if (e.target === modalContainer) {
+                            this.hideNodeHelp();
+                        }
+                    };
+
+                    document.body.appendChild(modalContainer);
+                }
+
+                // Create modal content
+                const content = document.createElement('div');
+                content.className = 'node-help-content';
+                content.style.backgroundColor = 'var(--bg-secondary)';
+                content.style.borderRadius = '8px';
+                content.style.maxWidth = '90%';
+                content.style.width = '500px';
+                content.style.maxHeight = '90vh';
+                content.style.overflow = 'auto';
+                content.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+                content.style.position = 'relative';
+                content.style.animation = 'helpModalShow 0.3s forwards';
+
+                // Add animation styles if not present
+                if (!document.getElementById('help-modal-animations')) {
+                    const style = document.createElement('style');
+                    style.id = 'help-modal-animations';
+                    style.textContent = `
+            @keyframes helpModalShow {
+                from { transform: scale(0.9); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+        `;
+                    document.head.appendChild(style);
+                }
+
+                // Create content
+                content.innerHTML = `
+        <h2 style="margin: 0; padding: 1rem; background-color: var(--bg-tertiary); border-bottom: 1px solid var(--node-border); font-size: 1.2rem; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.5rem;">${nodeType.icon}</span>
+            ${help.title || nodeType.title}
+            <div class="help-close" style="position: absolute; top: 0.75rem; right: 0.75rem; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; font-size: 1.2rem; color: var(--text-secondary);">&times;</div>
+        </h2>
+        <div style="padding: 1rem;">
+            <div style="margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary);">${help.description || ''}</div>
+            ${help.sections ? help.sections.map(section => `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: ${nodeType.color};">${section.title}</h3>
+                    <p style="font-size: 0.9rem; line-height: 1.5; white-space: pre-line;">${section.content}</p>
+                </div>
+            `).join('') : ''}
+        </div>
+    `;
+
+                // Set up close button
+                const closeBtn = content.querySelector('.help-close');
+                if (closeBtn) {
+                    closeBtn.onclick = () => {
+                        this.hideNodeHelp();
+                    };
+                }
+
+                // Add keyboard listener for Escape key
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Escape') {
+                        this.hideNodeHelp();
+                        document.removeEventListener('keydown', handleKeyDown);
+                    }
+                };
+                document.addEventListener('keydown', handleKeyDown);
+
+                // Show modal
+                modalContainer.innerHTML = '';
+                modalContainer.appendChild(content);
+                modalContainer.style.opacity = '1';
+                modalContainer.style.visibility = 'visible';
+            }
+
+            /**
+             * Hides the help modal
+             */
+            hideNodeHelp() {
+                const modalContainer = document.getElementById('node-help-modal-container');
+                if (modalContainer) {
+                    modalContainer.style.opacity = '0';
+                    modalContainer.style.visibility = 'hidden';
+                }
+            }
+
+
+
+
+
+
+
+            /**
+ * Show a confirmation modal
+ */
+            showConfirmModal(title, message, confirmText, cancelText, onConfirm) {
+                const modal = document.getElementById('confirmationModal');
+                const titleEl = document.getElementById('modalTitle');
+                const messageEl = document.getElementById('modalMessage');
+                const confirmBtn = document.getElementById('modalConfirmBtn');
+                const cancelBtn = document.getElementById('modalCancelBtn');
+
+                // Set content
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                confirmBtn.textContent = confirmText || 'Confirm';
+                cancelBtn.textContent = cancelText || 'Cancel';
+
+                // Setup event handlers
+                const hideModal = () => {
+                    modal.classList.remove('active');
+                    // Remove event listeners
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    cancelBtn.removeEventListener('click', hideModal);
+                    document.removeEventListener('keydown', handleKeyDown);
+                    modal.removeEventListener('click', handleOutsideClick);
+                };
+
+                const handleConfirm = () => {
+                    hideModal();
+                    onConfirm();
+                };
+
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Escape') hideModal();
+                    if (e.key === 'Enter') handleConfirm();
+                };
+
+                const handleOutsideClick = (e) => {
+                    if (e.target === modal) hideModal();
+                };
+
+                // Add event listeners
+                confirmBtn.addEventListener('click', handleConfirm);
+                cancelBtn.addEventListener('click', hideModal);
+                document.addEventListener('keydown', handleKeyDown);
+                modal.addEventListener('click', handleOutsideClick);
+
+                // Show modal
+                modal.classList.add('active');
+            }
+
+
+
+            // Add reset canvas method
+            // Replace the existing resetCanvas method with this
+            resetCanvas() {
+                this.showConfirmModal(
+                    'Reset Canvas',
+                    'This will remove all nodes and connections. Continue?',
+                    'Reset',
+                    'Cancel',
+                    () => {
+                        // Deactivate any running flow
+                        if (this.activationManager) {
+                            this.activationManager.deactivate();
+                        }
+                        // Clear workspace
+                        this.workspace.innerHTML = '';
+                        this.nodes.clear();
+                        this.connections.clear();
+
+                        // Create canvas content
+                        const canvasContent = document.createElement('div');
+                        canvasContent.className = 'canvas-content';
+                        this.workspace.appendChild(canvasContent);
+
+                        // Recreate connection container
+                        this.connectionContainer = document.createElement('div');
+                        this.connectionContainer.className = 'connection-container';
+                        canvasContent.appendChild(this.connectionContainer);
+
+                        // Reset zoom
+                        this.resetZoom();
+
+                        // Save state
+                        this.saveState();
+
+                        // Clear flow name
+                        document.getElementById('flowNameInput').value = '';
+
+                        this.log('info', 'Canvas reset');
+                    }
+                );
+            }
+
+
+
+            // Add these methods for zoom functionality
+            zoom(delta) {
+                const newZoom = Math.max(0.3, Math.min(2, this.zoomLevel + delta));
+                this.zoomLevel = newZoom;
+
+                document.getElementById('zoomLevel').textContent = `${Math.round(this.zoomLevel * 100)}%`;
+
+                this.applyZoom();
+            }
+
+            resetZoom() {
+                this.zoomLevel = 1;
+                document.getElementById('zoomLevel').textContent = '100%';
+                this.applyZoom();
+            }
+
+
+
+
+
+            // Update the applyZoom method to ensure the connection container is properly sized
+            applyZoom() {
+                let canvasContent = this.workspace.querySelector('.canvas-content');
+
+                if (!canvasContent) {
+                    canvasContent = document.createElement('div');
+                    canvasContent.className = 'canvas-content';
+
+                    const fragment = document.createDocumentFragment();
+
+                    // Move all nodes to the fragment
+                    Array.from(this.workspace.children)
+                        .filter(child => child !== this.connectionContainer)
+                        .forEach(node => fragment.appendChild(node));
+
+                    canvasContent.appendChild(fragment);
+                    canvasContent.appendChild(this.connectionContainer);
+                    this.workspace.appendChild(canvasContent);
+                }
+
+                // Apply the zoom transformation
+                canvasContent.style.transform = `scale(${this.zoomLevel})`;
+                canvasContent.style.transformOrigin = 'top left';
+
+                // The key change: make the canvas grow much larger than the viewport when zooming out
+                const scaleFactor = Math.max(2, 3 / this.zoomLevel);
+                canvasContent.style.width = `${100 * scaleFactor}%`;
+                canvasContent.style.height = `${100 * scaleFactor}%`;
+                canvasContent.style.position = 'absolute';
+
+                // Update connections to ensure they're visible
+                this.updateConnections();
+            }
+
+
+
+
+
+            /**
+ * Check if a flow has valid start nodes and structure
+ * @returns {Object} Object with isValid flag and message
+ */
+            validateFlow() {
+                // Check for at least one start node
+                const startNodes = Array.from(this.nodes.values()).filter(node => node.type === 'start');
+
+                if (startNodes.length === 0) {
+                    return {
+                        isValid: false,
+                        message: 'The flow requires at least one Start node.'
+                    };
+                }
+
+                // Check if all start nodes are connected to something
+                const unconnectedStartNodes = startNodes.filter(node => {
+                    return !Array.from(this.connections.values())
+                        .some(conn => conn.sourceNode === node.id);
+                });
+
+                if (startNodes.length > 0 && unconnectedStartNodes.length === startNodes.length) {
+                    return {
+                        isValid: false,
+                        message: 'At least one Start node must have a connection to another node.'
+                    };
+                }
+
+                return { isValid: true };
+            }
+
+
+
+            // Add this method to your FlowBuilder class
+updateRunButtonState() {
+    const validationResult = this.validateFlow();
+    const runButton = document.getElementById('runFlowBtn');
+    
+    if (validationResult.isValid) {
+        // Flow is ready to run - show full glow effect
+        runButton.classList.remove('not-ready');
+    } else {
+        // Flow is not ready - show only border animations
+        runButton.classList.add('not-ready');
+    }
+}
+
+
+
+            /**
+             * Find all nodes reachable from start nodes
+             * @returns {Set} Set of node IDs that are reachable from start nodes
+             */
+            findReachableNodes() {
+                const startNodes = Array.from(this.nodes.values())
+                    .filter(node => node.type === 'start')
+                    .map(node => node.id);
+
+                const reachableNodes = new Set(startNodes);
+                let newNodesFound = true;
+
+                // Keep exploring until no new nodes are found
+                while (newNodesFound) {
+                    newNodesFound = false;
+
+                    // For each node we know is reachable
+                    for (const nodeId of reachableNodes) {
+                        // Find all nodes directly connected to it
+                        const connections = Array.from(this.connections.values())
+                            .filter(conn => conn.sourceNode === nodeId)
+                            .map(conn => conn.targetNode);
+
+                        // Add any new nodes to the reachable set
+                        for (const connectedNode of connections) {
+                            if (!reachableNodes.has(connectedNode)) {
+                                reachableNodes.add(connectedNode);
+                                newNodesFound = true;
+                            }
+                        }
+                    }
+                }
+
+                return reachableNodes;
+            }
+
+
+
+
+            /**
+             * Check authentication status
+             */
+            async checkAuthStatus() {
+                try {
+                    const isAuthenticated = await puter.auth.isSignedIn();
+                    if (isAuthenticated) {
+                        const user = await puter.auth.getUser();
+                        this.showAuthenticatedState(user.username);
+                        this.updateFlowsList();
+                    } else {
+                        this.showUnauthenticatedState();
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    this.showUnauthenticatedState();
+                }
+            }
+
+            /**
+             * Show authenticated state UI
+             */
+            showAuthenticatedState(username) {
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('username').textContent = username;
+                document.getElementById('authBtn').textContent = 'Sign Out';
+                document.getElementById('resetBtn').style.display = 'block';
+            }
+
+            showUnauthenticatedState() {
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('authBtn').textContent = 'Sign In';
+                document.getElementById('resetBtn').style.display = 'none';
+            }
+
+            /**
+             * Handle authentication button click
+             */
+            async handleAuth() {
+                try {
+                    const isAuthenticated = await puter.auth.isSignedIn();
+                    if (isAuthenticated) {
+                        await puter.auth.signOut();
+                        this.showUnauthenticatedState();
+                    } else {
+                        await puter.auth.signIn();
+                        const user = await puter.auth.getUser();
+                        this.showAuthenticatedState(user.username);
+                        this.updateFlowsList();
+                    }
+                } catch (error) {
+                    console.error('Auth error:', error);
+                }
+            }
+
+            /**
+             * Handle drag over on workspace
+             */
+            handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            }
+
+            /**
+             * Handle drop on workspace
+             */
+            handleDrop(e) {
+                e.preventDefault();
+                const type = e.dataTransfer.getData('type');
+                if (type) {
+                    const rect = this.workspace.getBoundingClientRect();
+                    const canvasContent = this.workspace.querySelector('.canvas-content');
+
+                    // Calculate drop position accounting for zoom level
+                    const x = (e.clientX - rect.left) / this.zoomLevel + this.workspace.scrollLeft;
+                    const y = (e.clientY - rect.top) / this.zoomLevel + this.workspace.scrollTop;
+
+                    this.createNode(type, x, y);
+                    this.saveState();
+                }
+            }
+
+            /**
+        * Handle mouse move (for connections)
+        */
+            handleMouseMove(e) {
+                if (this.selectedConnector && this.tempConnection) {
+                    const canvasContent = this.workspace.querySelector('.canvas-content');
+                    if (!canvasContent) return; // Exit if canvas content doesn't exist yet
+
+                    const scale = this.zoomLevel;
+
+                    // Get mouse position in canvas coordinates, accounting for scale
+                    const canvasRect = canvasContent.getBoundingClientRect();
+                    const mouseX = (e.clientX - canvasRect.left) / scale;
+                    const mouseY = (e.clientY - canvasRect.top) / scale;
+
+                    // Get connector position in canvas coordinates
+                    const connector = this.selectedConnector;
+                    const connectorRect = connector.getBoundingClientRect();
+                    const connectorX = (connectorRect.left - canvasRect.left) / scale + connectorRect.width / (2 * scale);
+                    const connectorY = (connectorRect.top - canvasRect.top) / scale + connectorRect.height / (2 * scale);
+
+                    // Check if we're hovering over a node
+                    const hoveredElements = document.elementsFromPoint(e.clientX, e.clientY);
+                    let targetConnector = null;
+
+                    // Find if we're hovering over a node
+                    const hoveredNode = hoveredElements.find(el => el.classList && el.classList.contains('node'));
+
+                    if (hoveredNode && hoveredNode !== connector.closest('.node')) {
+                        // Find all input or output connectors on this node (depending on what we're dragging)
+                        const connectorsToCheck = connector.classList.contains('output')
+                            ? hoveredNode.querySelectorAll('.connector.input')
+                            : hoveredNode.querySelectorAll('.connector.output');
+
+                        if (connectorsToCheck.length > 0) {
+                            // If there's only one connector, use it
+                            if (connectorsToCheck.length === 1) {
+                                targetConnector = connectorsToCheck[0];
+                            } else {
+                                // Find the closest connector to the mouse position
+                                let minDistance = Infinity;
+
+                                connectorsToCheck.forEach(conn => {
+                                    const connRect = conn.getBoundingClientRect();
+                                    const connCenterX = connRect.left + connRect.width / 2;
+                                    const connCenterY = connRect.top + connRect.height / 2;
+
+                                    const dist = Math.hypot(e.clientX - connCenterX, e.clientY - connCenterY);
+
+                                    if (dist < minDistance) {
+                                        minDistance = dist;
+                                        targetConnector = conn;
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    // Draw path
+                    const path = this.tempConnection.querySelector('path');
+                    if (path) {
+                        let startX, startY, endX, endY;
+
+                        if (connector.classList.contains('output')) {
+                            startX = connectorX;
+                            startY = connectorY;
+
+                            if (targetConnector) {
+                                // Snap to target connector if found
+                                const targetRect = targetConnector.getBoundingClientRect();
+                                endX = (targetRect.left - canvasRect.left) / scale + targetRect.width / (2 * scale);
+                                endY = (targetRect.top - canvasRect.top) / scale + targetRect.height / (2 * scale);
+                            } else {
+                                endX = mouseX;
+                                endY = mouseY;
+                            }
+                        } else {
+                            if (targetConnector) {
+                                // Snap to target connector if found
+                                const targetRect = targetConnector.getBoundingClientRect();
+                                startX = (targetRect.left - canvasRect.left) / scale + targetRect.width / (2 * scale);
+                                startY = (targetRect.top - canvasRect.top) / scale + targetRect.height / (2 * scale);
+                            } else {
+                                startX = mouseX;
+                                startY = mouseY;
+                            }
+
+                            endX = connectorX;
+                            endY = connectorY;
+                        }
+
+                        // Calculate for better S-curve with straight segments
+                        const straightSegmentLength = 10;
+                        const spread = 0; // No spread for temporary connection
+
+                        const startOutX = startX;
+                        const startOutY = startY + straightSegmentLength;
+                        const endInX = endX;
+                        const endInY = endY - straightSegmentLength;
+                        const controlPointOffset = Math.min(Math.abs(endX - startX) * 0.25, 200);
+
+                        // Add a visual indication that we're snapping to a connector
+                        if (targetConnector) {
+                            path.setAttribute('stroke-dasharray', '');  // Solid line
+                            path.setAttribute('stroke-width', '3');     // Thicker line
+                            path.setAttribute('stroke', 'var(--accent-primary)'); // Highlight color
+                        } else {
+                            path.setAttribute('stroke-dasharray', '');  // Solid line
+                            path.setAttribute('stroke-width', '2');     // Normal line
+                            path.setAttribute('stroke', 'var(--connection-color)'); // Normal color
+                        }
+
+                        path.setAttribute('d', `
+                M ${startX} ${startY}
+                L ${startOutX} ${startOutY}
+                C ${startOutX + spread} ${startOutY + controlPointOffset},
+                  ${endInX + spread} ${endInY - controlPointOffset},
+                  ${endInX} ${endInY}
+                L ${endX} ${endY}
+            `);
+
+                        // Store the target connector for use when mouse is released
+                        this.hoveredTargetConnector = targetConnector;
+                    }
+                }
+            }
+
+
+
+
+
+            /**
+         * Handle mouse up (for connections)
+         */
+            handleMouseUp(e) {
+                if (this.selectedConnector) {
+                    let targetConnector = this.hoveredTargetConnector;
+
+                    // If we don't have a hovered target connector, try to find one at the exact position
+                    if (!targetConnector) {
+                        targetConnector = this.findConnectorAtPosition(e.clientX, e.clientY);
+                    }
+
+                    if (targetConnector && this.canConnect(this.selectedConnector, targetConnector)) {
+                        this.createConnection(this.selectedConnector, targetConnector);
+                        this.saveState();
+                    }
+
+                    if (this.tempConnection) {
+                        this.tempConnection.remove();
+                        this.tempConnection = null;
+                    }
+
+                    this.selectedConnector = null;
+                    this.hoveredTargetConnector = null;
+                }
+            }
+
+            /**
+             * Find connector at mouse position
+             */
+            findConnectorAtPosition(x, y) {
+                // Find all elements at the position
+                const elements = document.elementsFromPoint(x, y);
+
+                // Filter to find connector elements
+                return elements.find(el => el.classList && el.classList.contains('connector'));
+            }
+
+            /**
+             * Check if two connectors can be connected
+             */
+            canConnect(source, target) {
+                if (!source || !target || source === target) {
+                    return false;
+                }
+
+                // Can't connect to same node
+                const sourceNode = source.closest('.node');
+                const targetNode = target.closest('.node');
+                if (sourceNode === targetNode) {
+                    return false;
+                }
+
+                // One must be input and one must be output
+                const isSourceOutput = source.classList.contains('output');
+                const isTargetInput = target.classList.contains('input');
+
+                // Input->Output or Output->Input only
+                if ((isSourceOutput && !isTargetInput) || (!isSourceOutput && isTargetInput)) {
+                    return false;
+                }
+
+                // Check if input already has a connection
+                if (isTargetInput) {
+                    const targetNodeId = targetNode.id;
+                    const targetConnections = Array.from(this.connections.values())
+                        .filter(conn => conn.targetNode === targetNodeId);
+
+                    if (targetConnections.length > 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            /**
+             * Create a new node
+             */
+            createNode(type, x, y) {
+                const nodeType = this.nodeRegistry.getNodeType(type);
+                if (!nodeType) {
+                    console.error(`Node type '${type}' not found`);
+                    return null;
+                }
+
+                const nodeId = `node-${this.nodeCounter++}`;
+                const node = {
+                    id: nodeId,
+                    type: type,
+                    x: x,
+                    y: y,
+                    settings: { ...nodeType.defaultSettings }
+                };
+
+                // Create node element
+                const element = document.createElement('div');
+                element.id = nodeId;
+                element.className = 'node';
+                element.dataset.type = type;
+                element.style.left = `${x}px`;
+                element.style.top = `${y}px`;
+                element.style.zIndex = '10'; // Set initial z-index
+
+                // Node content
+                element.innerHTML = `
+        <div class="node-header">
+            <div class="node-title">
+                <span class="node-icon">${nodeType.icon}</span>
+                ${nodeType.title}
+            </div>
+            <div class="node-close">×</div>
+        </div>
+        ${nodeType.createContent(node)}
+        <div class="connectors-container">
+            ${Array(nodeType.inputs).fill('')
+                        .map((_, i) => `<div class="connector input" data-index="${i}" data-count="${nodeType.inputs}"></div>`)
+                        .join('')}
+            ${Array(nodeType.outputs).fill('')
+                        .map((_, i) => {
+                            const label = nodeType.outputLabels ?
+                                `data-label="${nodeType.outputLabels[i] || ''}"` : '';
+                            return `<div class="connector output" data-index="${i}" 
+                    data-count="${nodeType.outputs}" ${label}></div>`;
+                        })
+                        .join('')}
+        </div>
+    `;
+
+                // Add node to canvas-content instead of workspace
+                const canvasContent = this.workspace.querySelector('.canvas-content');
+                canvasContent.appendChild(element);
+                this.nodes.set(nodeId, node);
+
+                // Setup node interactions
+                this.setupNodeInteractions(element);
+
+
+
+                // After creating the node element and appending it to canvasContent
+                // Add help icon if node has help documentation
+                if (nodeType.help) {
+                    const nodeContent = element.querySelector('.node-content');
+                    if (nodeContent) {
+                        const helpIcon = document.createElement('div');
+                        helpIcon.className = 'help-icon';
+                        helpIcon.innerHTML = '?';
+                        helpIcon.title = 'Node Help';
+                        helpIcon.style.position = 'absolute';
+                        helpIcon.style.bottom = '8px';  // Changed from top to bottom
+                        helpIcon.style.right = '8px';
+                        helpIcon.style.width = '16px';
+                        helpIcon.style.height = '16px';
+                        helpIcon.style.backgroundColor = `${nodeType.color}30`; // Using node color with transparency
+                        helpIcon.style.color = nodeType.color;
+                        helpIcon.style.borderRadius = '50%';
+                        helpIcon.style.display = 'flex';
+                        helpIcon.style.alignItems = 'center';
+                        helpIcon.style.justifyContent = 'center';
+                        helpIcon.style.fontSize = '12px';
+                        helpIcon.style.cursor = 'pointer';
+                        helpIcon.style.transition = 'all 0.2s';
+                        helpIcon.style.zIndex = '100';
+
+                        // Add hover effect
+                        helpIcon.onmouseenter = () => {
+                            helpIcon.style.backgroundColor = `${nodeType.color}50`;
+                            helpIcon.style.transform = 'scale(1.1)';
+                        };
+                        helpIcon.onmouseleave = () => {
+                            helpIcon.style.backgroundColor = `${nodeType.color}30`;
+                            helpIcon.style.transform = 'scale(1)';
+                        };
+
+                        // Add click handler
+                        helpIcon.onclick = (e) => {
+                            e.stopPropagation();
+                            this.showNodeHelp(nodeId, nodeType);
+                        };
+
+                        // Append to node content instead of header
+                        nodeContent.appendChild(helpIcon);
+                    }
+                }
+
+
+
+
+                this.updateRunButtonState();
+                return node; // Make sure to return the node
+            }
+
+
+
+
+
+            /**
+             * Setup node interactions (dragging, connectors, close button)
+             */
+            setupNodeInteractions(element) {
+                // Make the header the drag handle
+                const header = element.querySelector('.node-header');
+                header.addEventListener('mousedown', (e) => {
+                    // Don't start dragging if clicking the close button
+                    if (e.target.classList.contains('node-close')) {
+                        return;
+                    }
+
+                    // Bring the node to front when clicked
+                    this.bringNodeToFront(element);
+
+                    e.stopPropagation();
+                    this.startNodeDrag(e, element);
+                });
+
+                // Make entire node bring to front when clicked (not just header)
+                element.addEventListener('mousedown', (e) => {
+                    this.bringNodeToFront(element);
+                });
+
+                // Setup connectors
+                const connectors = element.querySelectorAll('.connector');
+                connectors.forEach(connector => {
+                    connector.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        this.startConnection(connector);
+                    });
+                });
+
+                // Setup close button
+                const closeBtn = element.querySelector('.node-close');
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteNode(element.id);
+                    this.saveState();
+                });
+            }
+
+            /**
+             * Bring a node to the front
+             */
+            bringNodeToFront(nodeElement) {
+                // Get all nodes and sort them by z-index
+                const canvasContent = this.workspace.querySelector('.canvas-content');
+                const nodes = Array.from(canvasContent.querySelectorAll('.node'));
+
+                // Reset all nodes to a base z-index
+                nodes.forEach(node => {
+                    node.style.zIndex = '10'; // Base z-index for nodes (above connections)
+                });
+
+                // Set the clicked node to a higher z-index
+                nodeElement.style.zIndex = '20'; // Higher z-index for the active node
+            }
+
+
+
+
+
+            /**
+             * Start dragging a node
+             */
+            startNodeDrag(e, nodeElement) {
+                if (!nodeElement) return;
+
+                this.draggingNode = {
+                    element: nodeElement,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    originalX: parseInt(nodeElement.style.left),
+                    originalY: parseInt(nodeElement.style.top)
+                };
+
+                // Setup drag event listeners
+                document.addEventListener('mousemove', this.dragNode);
+                document.addEventListener('mouseup', this.stopNodeDrag);
+
+                // Prevent text selection
+                e.preventDefault();
+            }
+
+            /**
+             * Drag node with mouse
+             */
+             dragNode = (e) => {
+    if (!this.draggingNode) return;
+
+    // Account for zoom level when calculating displacement
+    const dx = (e.clientX - this.draggingNode.startX) / this.zoomLevel;
+    const dy = (e.clientY - this.draggingNode.startY) / this.zoomLevel;
+
+    const newX = Math.max(0, this.draggingNode.originalX + dx);
+    const newY = Math.max(0, this.draggingNode.originalY + dy);
+
+    this.draggingNode.element.style.left = `${newX}px`;
+    this.draggingNode.element.style.top = `${newY}px`;
+
+    // Update node data
+    const nodeId = this.draggingNode.element.id;
+    const node = this.nodes.get(nodeId);
+    if (node) {
+        node.x = newX;
+        node.y = newY;
+    }
+
+    // Update connections in real-time while dragging
+    this.updateConnections();
+}
+
+            /**
+             * Stop dragging a node
+             */
+            stopNodeDrag = (e) => {
+                if (this.draggingNode) {
+                    // Save state after dragging completes
+                    this.saveState();
+                    this.draggingNode = null;
+
+                    // Remove event listeners
+                    document.removeEventListener('mousemove', this.dragNode);
+                    document.removeEventListener('mouseup', this.stopNodeDrag);
+                }
+            }
+
+
+
+            /**
+             * Start creating a connection
+             */
+            startConnection(connector) {
+                this.selectedConnector = connector;
+
+                // Create temporary connection line
+                this.tempConnection = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                this.tempConnection.classList.add('connection');
+                this.tempConnection.classList.add('temp-connection');
+                this.tempConnection.style.position = 'absolute';
+                this.tempConnection.style.top = '0';
+                this.tempConnection.style.left = '0';
+                this.tempConnection.style.width = '100%';
+                this.tempConnection.style.height = '100%';
+                this.tempConnection.style.pointerEvents = 'none';
+                this.tempConnection.innerHTML = '<path stroke="var(--connection-color)" stroke-width="2" fill="none"/>';
+
+                this.connectionContainer.appendChild(this.tempConnection);
+            }
+
+
+
+            dragConnection(e) {
+                if (!this.selectedConnector || !this.tempConnection) return;
+
+                const canvasContent = this.workspace.querySelector('.canvas-content');
+                if (!canvasContent) return;
+
+                const scale = this.zoomLevel;
+
+                // Get mouse position in canvas coordinates
+                const canvasRect = canvasContent.getBoundingClientRect();
+                const mouseX = (e.clientX - canvasRect.left) / scale;
+                const mouseY = (e.clientY - canvasRect.top) / scale;
+
+                // Get connector position in canvas coordinates
+                const connector = this.selectedConnector;
+                const connectorRect = connector.getBoundingClientRect();
+                const connectorX = (connectorRect.left - canvasRect.left) / scale + connectorRect.width / (2 * scale);
+                const connectorY = (connectorRect.top - canvasRect.top) / scale + connectorRect.height / (2 * scale);
+
+                // Find the closest potential input connector if we're dragging from an output
+                // or the closest output connector if we're dragging from an input
+                const isSource = connector.classList.contains('output');
+                const targetSelector = isSource ? '.connector.input' : '.connector.output';
+
+                let closestConnector = null;
+                let closestDistance = Infinity;
+
+                document.querySelectorAll(targetSelector).forEach(targetConn => {
+                    if (targetConn.closest('.node') === connector.closest('.node')) return;
+
+                    const rect = targetConn.getBoundingClientRect();
+                    const targetX = (rect.left - canvasRect.left) / scale + rect.width / (2 * scale);
+                    const targetY = (rect.top - canvasRect.top) / scale + rect.height / (2 * scale);
+
+                    const distance = Math.hypot(mouseX - targetX, mouseY - targetY);
+                    if (distance < closestDistance && distance < 100) { // Only consider connectors within 100px
+                        closestDistance = distance;
+                        closestConnector = targetConn;
+                    }
+                });
+
+                // Calculate line points
+                let startX, startY, endX, endY;
+
+                if (isSource) {
+                    startX = connectorX;
+                    startY = connectorY;
+
+                    if (closestConnector) {
+                        const rect = closestConnector.getBoundingClientRect();
+                        endX = (rect.left - canvasRect.left) / scale + rect.width / (2 * scale);
+                        endY = (rect.top - canvasRect.top) / scale + rect.height / (2 * scale);
+                    } else {
+                        endX = mouseX;
+                        endY = mouseY;
+                    }
+                } else {
+                    endX = connectorX;
+                    endY = connectorY;
+
+                    if (closestConnector) {
+                        const rect = closestConnector.getBoundingClientRect();
+                        startX = (rect.left - canvasRect.left) / scale + rect.width / (2 * scale);
+                        startY = (rect.top - canvasRect.top) / scale + rect.height / (2 * scale);
+                    } else {
+                        startX = mouseX;
+                        startY = mouseY;
+                    }
+                }
+
+                // Draw path with the same styling as permanent connections
+                const path = this.tempConnection.querySelector('path');
+                if (path) {
+                    const straightSegmentLength = 10;
+                    const spreadOffset = 0; // No spread for temporary connection
+                    const dx = endX - startX;
+                    const dy = endY - startY;
+                    const controlPointOffset = Math.min(Math.abs(dx) * 0.25, 200);
+
+                    const startOutX = startX;
+                    const startOutY = startY + straightSegmentLength;
+                    const endInX = endX;
+                    const endInY = endY - straightSegmentLength;
+
+                    // Use the same path structure for consistency
+                    const pathData = `
+            M ${startX} ${startY}
+            L ${startOutX} ${startOutY}
+            C ${startOutX + spreadOffset} ${startOutY + controlPointOffset},
+              ${endInX + spreadOffset} ${endInY - controlPointOffset},
+              ${endInX} ${endInY}
+            L ${endX} ${endY}
+        `;
+
+                    path.setAttribute('d', pathData);
+
+                    // Visual feedback when hovering over a potential connection target
+                    if (closestConnector) {
+                        path.setAttribute('stroke', 'var(--accent-primary)');
+                        path.setAttribute('stroke-width', '3');
+
+                        // Highlight the target connector
+                        closestConnector.style.transform = 'scale(1.5)';
+                        closestConnector.style.boxShadow = '0 0 5px var(--accent-primary)';
+                    } else {
+                        path.setAttribute('stroke', 'var(--connection-color)');
+                        path.setAttribute('stroke-width', '2');
+
+                        // Reset all connector styles
+                        document.querySelectorAll('.connector').forEach(c => {
+                            c.style.transform = '';
+                            c.style.boxShadow = '';
+                        });
+                    }
+
+                    // Store the closest connector for use in endConnection method
+                    this.closestTargetConnector = closestConnector;
+                }
+            }
+
+
+
+
+
+
+            endConnection(e) {
+                if (!this.selectedConnector) return;
+
+                // Check if we have a valid connector pair
+                const targetConnector = this.closestTargetConnector ||
+                    this.findConnectorAtPosition(e.clientX, e.clientY);
+
+                if (targetConnector && this.canConnect(this.selectedConnector, targetConnector)) {
+                    this.createConnection(this.selectedConnector, targetConnector);
+                    this.saveState();
+                }
+
+                // Clean up
+                if (this.tempConnection) {
+                    this.tempConnection.remove();
+                    this.tempConnection = null;
+                }
+
+                // Reset all connector styles
+                document.querySelectorAll('.connector').forEach(c => {
+                    c.style.transform = '';
+                    c.style.boxShadow = '';
+                });
+
+                this.selectedConnector = null;
+                this.closestTargetConnector = null;
+            }
+
+
+
+            /**
+             * Create a connection between two connectors
+             */
+            createConnection(source, target) {
+                // Ensure source is output and target is input
+                if (source.classList.contains('input')) {
+                    [source, target] = [target, source];
+                }
+
+                const sourceNode = source.closest('.node').id;
+                const targetNode = target.closest('.node').id;
+                const sourcePort = parseInt(source.dataset.index || 0);
+                const targetPort = parseInt(target.dataset.index || 0);
+
+                const connectionId = `conn-${Date.now()}`;
+                const connection = {
+                    id: connectionId,
+                    sourceNode,
+                    targetNode,
+                    sourcePort,
+                    targetPort
+                };
+
+                this.connections.set(connectionId, connection);
+                this.updateConnections();
+                this.updateRunButtonState();
+            }
+
+
+            updateConnections() {
+                // Clear existing connection visuals
+                this.connectionContainer.innerHTML = '';
+
+                // Get the canvas content for proper coordinate transformation
+                const canvasContent = this.workspace.querySelector('.canvas-content');
+                const scale = this.zoomLevel;
+
+                // Group connections by source node to handle multiple outputs
+                const groupedConnections = new Map();
+                this.connections.forEach(connection => {
+                    if (!groupedConnections.has(connection.sourceNode)) {
+                        groupedConnections.set(connection.sourceNode, []);
+                    }
+                    groupedConnections.get(connection.sourceNode).push(connection);
+                });
+
+                // Redraw all connections
+                this.connections.forEach(connection => {
+                    const sourceNode = document.getElementById(connection.sourceNode);
+                    const targetNode = document.getElementById(connection.targetNode);
+
+                    if (!sourceNode || !targetNode) {
+                        this.connections.delete(connection.id);
+                        return;
+                    }
+
+                    const sourceConnector = sourceNode.querySelector(`.connector.output[data-index="${connection.sourcePort}"]`);
+                    const targetConnector = targetNode.querySelector(`.connector.input[data-index="${connection.targetPort}"]`);
+
+                    if (!sourceConnector || !targetConnector) {
+                        this.connections.delete(connection.id);
+                        return;
+                    }
+
+                    // Calculate connector positions in the viewport
+                    const sourceRect = sourceConnector.getBoundingClientRect();
+                    const targetRect = targetConnector.getBoundingClientRect();
+                    const canvasRect = canvasContent.getBoundingClientRect();
+
+                    // Convert to virtual canvas coordinates
+                    const sourceX = (sourceRect.left - canvasRect.left) / scale + sourceRect.width / (2 * scale);
+                    const sourceY = (sourceRect.top - canvasRect.top) / scale + sourceRect.height / (2 * scale);
+                    const targetX = (targetRect.left - canvasRect.left) / scale + targetRect.width / (2 * scale);
+                    const targetY = (targetRect.top - canvasRect.top) / scale + targetRect.height / (2 * scale);
+
+                    // Create connection wrapper
+                    const connectionWrapper = document.createElement('div');
+                    connectionWrapper.className = 'connection';
+                    connectionWrapper.dataset.id = connection.id;
+                    connectionWrapper.style.position = 'absolute';
+                    connectionWrapper.style.top = '0';
+                    connectionWrapper.style.left = '0';
+                    connectionWrapper.style.width = '100%';
+                    connectionWrapper.style.height = '100%';
+                    connectionWrapper.style.pointerEvents = 'none';
+
+                    // Create SVG for path
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.style.position = 'absolute';
+                    svg.style.top = '0';
+                    svg.style.left = '0';
+                    svg.style.width = '100%';
+                    svg.style.height = '100%';
+
+                    // Create path
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.style.pointerEvents = 'stroke';
+                    path.style.cursor = 'pointer';
+
+                    // Get connection group and index
+                    const sourceGroup = groupedConnections.get(connection.sourceNode);
+                    const groupIndex = sourceGroup.indexOf(connection);
+                    const totalInGroup = sourceGroup.length;
+
+                    // Calculate spread offset based on position in group
+                    const spreadOffset = (groupIndex - (totalInGroup - 1) / 2) * 15;
+
+                    // Calculate path with more pronounced S-curve
+                    const dx = targetX - sourceX;
+                    const dy = targetY - sourceY;
+                    const straightSegmentLength = 10; // Length of straight segments out of connectors
+                    const controlPointOffset = Math.min(Math.abs(dx) * 0.25, 200);
+
+                    // Calculate curve points
+                    const startOutX = sourceX;
+                    const startOutY = sourceY + straightSegmentLength;
+                    const endInX = targetX;
+                    const endInY = targetY - straightSegmentLength;
+
+                    // Build the path with the improved S-curve and spread offset
+                    const pathData = `
+            M ${sourceX} ${sourceY}
+            L ${startOutX} ${startOutY}
+            C ${startOutX + spreadOffset} ${startOutY + controlPointOffset},
+              ${endInX + spreadOffset} ${endInY - controlPointOffset},
+              ${endInX} ${endInY}
+            L ${targetX} ${targetY}
+        `;
+
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('stroke', 'var(--connection-color)');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+
+                    // Create hit area for better mouse interaction
+                    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    hitArea.setAttribute('d', pathData);
+                    hitArea.setAttribute('stroke', 'transparent');
+                    hitArea.setAttribute('stroke-width', '15');
+                    hitArea.setAttribute('fill', 'none');
+                    hitArea.style.pointerEvents = 'stroke';
+                    hitArea.style.cursor = 'pointer';
+
+                    // Calculate midpoint for delete button with spread offset
+                    const midpointY = (startOutY + endInY) / 2;
+                    const midpointX = (sourceX + targetX) / 2 + spreadOffset;
+
+                    // Create delete button
+                    const deleteBtn = document.createElement('div');
+                    deleteBtn.className = 'connection-delete-btn';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.style.position = 'absolute';
+                    deleteBtn.style.left = `${midpointX}px`;
+                    deleteBtn.style.top = `${midpointY}px`;
+                    deleteBtn.style.transform = 'translate(-50%, -50%)';
+                    deleteBtn.style.width = '22px';
+                    deleteBtn.style.height = '22px';
+                    deleteBtn.style.backgroundColor = 'var(--error-color)';
+                    deleteBtn.style.color = 'white';
+                    deleteBtn.style.borderRadius = '50%';
+                    deleteBtn.style.display = 'flex';
+                    deleteBtn.style.alignItems = 'center';
+                    deleteBtn.style.justifyContent = 'center';
+                    deleteBtn.style.fontSize = '16px';
+                    deleteBtn.style.fontWeight = 'bold';
+                    deleteBtn.style.cursor = 'pointer';
+                    deleteBtn.style.opacity = '0';
+                    deleteBtn.style.transition = 'all 0.2s ease';
+                    deleteBtn.style.pointerEvents = 'auto';
+                    deleteBtn.style.zIndex = '100';
+                    deleteBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.4)';
+                    deleteBtn.style.border = '1px solid rgba(255,255,255,0.3)';
+
+                    // Add hover effects 
+                    [hitArea, path].forEach(element => {
+                        element.addEventListener('mouseenter', () => {
+                            path.setAttribute('stroke', 'var(--accent-primary)');
+                            path.setAttribute('stroke-width', '3');
+                            deleteBtn.style.opacity = '1';
+                        });
+
+                        element.addEventListener('mouseleave', () => {
+                            if (!deleteBtn.matches(':hover')) {
+                                path.setAttribute('stroke', 'var(--connection-color)');
+                                path.setAttribute('stroke-width', '2');
+                                deleteBtn.style.opacity = '0';
+                            }
+                        });
+                    });
+
+                    // Ensure delete button stays visible when hovering it
+                    deleteBtn.addEventListener('mouseenter', () => {
+                        path.setAttribute('stroke', 'var(--accent-primary)');
+                        path.setAttribute('stroke-width', '3');
+                    });
+
+                    deleteBtn.addEventListener('mouseleave', () => {
+                        if (!path.matches(':hover') && !hitArea.matches(':hover')) {
+                            path.setAttribute('stroke', 'var(--connection-color)');
+                            path.setAttribute('stroke-width', '2');
+                            deleteBtn.style.opacity = '0';
+                        }
+                    });
+
+                    // Add delete handler
+                    const connectionId = connection.id;
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.connections.delete(connectionId);
+                        this.updateConnections();
+                        this.saveState();
+                    });
+
+                    // Add elements to container
+                    svg.appendChild(hitArea);
+                    svg.appendChild(path);
+                    connectionWrapper.appendChild(svg);
+                    connectionWrapper.appendChild(deleteBtn);
+                    this.connectionContainer.appendChild(connectionWrapper);
+                });
+
+                this.updateRunButtonState();
+            }
+
+
+
+
+            /**
+             * Delete a node
+             */
+            deleteNode(nodeId) {
+                // Remove node element
+                const element = document.getElementById(nodeId);
+                if (element) {
+                    element.remove();
+                }
+
+                // Remove node data
+                this.nodes.delete(nodeId);
+
+                // Remove connections to/from this node
+                for (const [id, connection] of this.connections.entries()) {
+                    if (connection.sourceNode === nodeId || connection.targetNode === nodeId) {
+                        this.connections.delete(id);
+                    }
+                }
+
+                this.updateConnections();
+                this.updateRunButtonState();
+            }
+
+            /**
+             * Update a node setting
+             */
+            // Find the updateNodeSetting method in the FlowBuilder class
+updateNodeSetting(nodeId, key, value) {
+    const node = this.nodes.get(nodeId);
+    if (node) {
+        if (!node.settings) {
+            node.settings = {};
+        }
+        node.settings[key] = value;
+        
+        // Refresh node content if needed
+        const nodeElement = document.getElementById(nodeId);
+        if (nodeElement) {
+            const nodeType = this.nodeRegistry.getNodeType(node.type);
+            if (nodeType) {
+                // Store the previous size
+                const prevWidth = nodeElement.offsetWidth;
+                const prevHeight = nodeElement.offsetHeight;
+                
+                // Update content
+                nodeElement.querySelector('.node-content').innerHTML = nodeType.createContent(node);
+                
+                // Check if size changed
+                const newWidth = nodeElement.offsetWidth;
+                const newHeight = nodeElement.offsetHeight;
+                
+                // If size changed, update connections
+                if (prevWidth !== newWidth || prevHeight !== newHeight) {
+                    // Add a small delay to ensure the DOM has updated
+                    setTimeout(() => {
+                        this.updateConnections();
+                    }, 10);
+                }
+            }
+        }
+        
+        this.saveState();
+    }
+}
+
+
+
+
+            /**
+             * Save the current state (for undo/redo)
+             */
+            saveState() {
+                const state = {
+                    nodes: Array.from(this.nodes.entries()),
+                    connections: Array.from(this.connections.entries())
+                };
+
+                // Only add state if different from current
+                const currentState = JSON.stringify(state);
+                const lastState = this.undoStack.length > 0
+                    ? JSON.stringify(this.undoStack[this.undoStack.length - 1])
+                    : null;
+
+                if (currentState !== lastState) {
+                    this.undoStack.push(state);
+                    this.redoStack = []; // Clear redo stack on new action
+                    this.updateUndoRedoButtons();
+                }
+            }
+
+            /**
+             * Update undo/redo buttons state
+             */
+            updateUndoRedoButtons() {
+                document.getElementById('undoBtn').disabled = this.undoStack.length <= 1;
+                document.getElementById('redoBtn').disabled = this.redoStack.length === 0;
+            }
+
+            /**
+             * Undo the last action
+             */
+            undo() {
+                if (this.undoStack.length <= 1) return; // Keep initial state
+
+                // Move current state to redo stack
+                this.redoStack.push(this.undoStack.pop());
+
+                // Apply previous state
+                this.applyState(this.undoStack[this.undoStack.length - 1]);
+                this.updateUndoRedoButtons();
+            }
+
+            /**
+             * Redo the last undone action
+             */
+            redo() {
+                if (this.redoStack.length === 0) return;
+
+                // Get next state
+                const nextState = this.redoStack.pop();
+
+                // Save current state to undo stack
+                this.undoStack.push(nextState);
+
+                // Apply next state
+                this.applyState(nextState);
+                this.updateUndoRedoButtons();
+            }
+
+            /**
+             * Apply a state (nodes and connections)
+             */
+            applyState(state) {
+                // Clear workspace
+                this.workspace.innerHTML = '';
+                this.nodes.clear();
+                this.connections.clear();
+
+                // Create canvas content
+                const canvasContent = document.createElement('div');
+                canvasContent.className = 'canvas-content';
+                this.workspace.appendChild(canvasContent);
+
+                // Recreate connection container
+                this.connectionContainer = document.createElement('div');
+                this.connectionContainer.className = 'connection-container';
+                canvasContent.appendChild(this.connectionContainer);
+
+                // Apply current zoom
+                canvasContent.style.transform = `scale(${this.zoomLevel})`;
+                canvasContent.style.width = `${100 / this.zoomLevel}%`;
+                canvasContent.style.height = `${100 / this.zoomLevel}%`;
+
+                // Restore nodes
+                for (const [id, nodeData] of state.nodes) {
+                    // Create node element
+                    const nodeType = this.nodeRegistry.getNodeType(nodeData.type);
+                    if (!nodeType) continue;
+
+                    const element = document.createElement('div');
+                    element.id = id;
+                    element.className = 'node';
+                    element.dataset.type = nodeData.type;
+                    element.style.left = `${nodeData.x}px`;
+                    element.style.top = `${nodeData.y}px`;
+
+                    element.innerHTML = `
+            <div class="node-header">
+                <div class="node-title">
+                    <span class="node-icon">${nodeType.icon}</span>
+                    ${nodeType.title}
+                </div>
+                <div class="node-close">×</div>
+            </div>
+            ${nodeType.createContent(nodeData)}
+            <div class="connectors-container">
+                ${Array(nodeType.inputs).fill('')
+                            .map((_, i) => `<div class="connector input" data-index="${i}" data-count="${nodeType.inputs}"></div>`)
+                            .join('')}
+                ${Array(nodeType.outputs).fill('')
+                            .map((_, i) => {
+                                const label = nodeType.outputLabels ?
+                                    `data-label="${nodeType.outputLabels[i] || ''}"` : '';
+                                return `<div class="connector output" data-index="${i}" 
+                                data-count="${nodeType.outputs}" ${label}></div>`;
+                            })
+                            .join('')}
+            </div>
+        `;
+
+                    canvasContent.appendChild(element);
+                    this.setupNodeInteractions(element);
+                    this.nodes.set(id, nodeData);
+                }
+
+                // Restore connections
+                for (const [id, connection] of state.connections) {
+                    this.connections.set(id, connection);
+                }
+
+                this.updateConnections();
+            }
+
+            /**
+   * Add message to output log
+   */
+   log(type, message, nodeId = null) {
+    const messageEl = document.createElement('div');
+
+    // Check if this is a system message
+    const isSystemMessage = !nodeId ||
+        message.startsWith('Executing') ||
+        message === 'Flow started manually' ||
+        message.includes('Flow execution') ||
+        message.includes('Flow activated') ||
+        message.includes('Flow deactivated');
+
+    // Add appropriate classes
+    if (isSystemMessage) {
+        messageEl.className = `output-message system-message ${type}`;
+    } else {
+        messageEl.className = `output-message ${type}`;
+
+        // Add data-node-id attribute for content messages
+        if (nodeId) {
+            messageEl.setAttribute('data-node-id', nodeId);
+        }
+    }
+
+    let nodeType = '';
+    let nodeTitle = '';
+    let nodeIcon = '';
+    let nodeColor = '';
+    let formattedMessage = message;
+
+    if (nodeId && !isSystemMessage) {
+        const node = this.nodes.get(nodeId);
+        if (node) {
+            const nodeTypeInfo = this.nodeRegistry.getNodeType(node.type);
+            nodeType = node.type;
+            nodeTitle = nodeTypeInfo.title;
+            nodeIcon = nodeTypeInfo.icon;
+            // Get the node color from the nodeType definition
+            nodeColor = nodeTypeInfo.color || 'var(--accent-primary)';
+
+            // Use custom message formatter if available
+            if (nodeTypeInfo.formatLogMessage && typeof nodeTypeInfo.formatLogMessage === 'function') {
+                formattedMessage = nodeTypeInfo.formatLogMessage(message, type, node);
+            }
+        }
+    }
+
+    const time = new Date().toLocaleTimeString();
+
+    // Different HTML structure based on message type
+    if (isSystemMessage) {
+        // System message with timestamp on right side
+        messageEl.innerHTML = `
+            <div class="output-message-content" style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="flex-grow: 1; text-align: left;">${formattedMessage}</span>
+                <span class="timestamp" style="font-size: 0.75rem; color: #6e7681; margin-left: 10px;">${time}</span>
+            </div>
+        `;
+    } else {
+        // Node output with type indicator and timestamp on right
+        const outputContent = typeof formattedMessage === 'string' && formattedMessage.startsWith('[') && formattedMessage.includes(']') 
+            ? formattedMessage.match(/\[(.*?)\](.*)/s) 
+            : null;
+            
+        const outputType = outputContent ? outputContent[1] : '';
+        const actualOutput = outputContent ? outputContent[2].trim() : formattedMessage;
+        
+        // Create a completely new structure with simpler HTML
+        messageEl.innerHTML = `
+            <div style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span>${nodeIcon} ${nodeTitle}</span>
+                        <span style="color: #6e7681; font-size: 0.8rem;">[${outputType}]</span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: #6e7681;">${time}</span>
+                </div>
+                <div style="width: 100%; text-align: left; margin-top: 10px;">
+                    ${actualOutput}
+                </div>
+            </div>
+        `;
+
+        // Add the colored border based on node type
+        messageEl.style.borderLeftColor = nodeColor;
+        messageEl.style.borderLeft = `3px solid ${nodeColor}`;
+    }
+
+    // Apply direct style overrides
+    setTimeout(() => {
+        const contentElements = messageEl.querySelectorAll('div');
+        contentElements.forEach(el => {
+            el.style.textAlign = 'left';
+        });
+        
+        // Specifically target the container that has the actual output
+        const outputEl = messageEl.querySelector('div div:nth-child(2)');
+        if (outputEl) {
+            outputEl.setAttribute('style', 'text-align: left !important; display: block; width: 100%; margin-top: 10px;');
+        }
+    }, 0);
+
+    this.outputLog.insertBefore(messageEl, this.outputLog.firstChild);
+}
+
+
+
+
+
+            /**
+             * Clear the output log
+             */
+            clearLog() {
+                this.outputLog.innerHTML = '';
+            }
+
+            /**
+             * Show flows list dropdown
+             */
+            async showFlowsList() {
+                const listEl = document.getElementById('flowsList');
+                listEl.style.display = 'block';
+                await this.updateFlowsList();
+            }
+
+            /**
+             * Filter flows list
+             */
+            filterFlowList() {
+                const searchTerm = document.getElementById('flowNameInput').value.toLowerCase();
+                const items = document.querySelectorAll('.flow-item');
+
+                items.forEach(item => {
+                    const nameEl = item.querySelector('.flow-item-name');
+                    if (!nameEl) return;
+
+                    const name = nameEl.textContent.toLowerCase();
+                    item.style.display = name.includes(searchTerm) ? 'flex' : 'none';
+                });
+            }
+
+            /**
+             * Update flows list
+             */
+            async updateFlowsList() {
+                const listEl = document.getElementById('flowsList');
+                listEl.innerHTML = '';
+
+                if (!await this.checkAuth()) {
+                    listEl.innerHTML = '<div class="flow-item">Sign in to view flows</div>';
+                    return;
+                }
+
+                try {
+                    let flowsDir;
+                    try {
+                        // Make sure to handle both error cases
+                        flowsDir = await puter.fs.readdir('.flows');
+                    } catch (error) {
+                        // Create directory if it doesn't exist
+                        console.log('Error reading flows directory:', error);
+                        if (error.code === 'dest_does_not_exist' || error.code === 'subject_does_not_exist') {
+                            try {
+                                await puter.fs.mkdir('.flows');
+                                flowsDir = [];
+                            } catch (mkdirError) {
+                                console.log('Error creating .flows directory:', mkdirError);
+                                if (mkdirError.code === 'item_with_same_name_exists') {
+                                    // Directory already exists, so try reading again
+                                    flowsDir = await puter.fs.readdir('.flows').catch(() => []);
+                                } else {
+                                    throw mkdirError;
+                                }
+                            }
+                        } else {
+                            // If another error, set empty folder
+                            flowsDir = [];
+                        }
+                    }
+
+                    const flowFiles = Array.isArray(flowsDir) ?
+                        flowsDir.filter(file => file.name?.endsWith('.json')) : [];
+
+                    if (flowFiles.length === 0) {
+                        listEl.innerHTML = '<div class="flow-item">No saved flows</div>';
+                        return;
+                    }
+
+                    // Sort by modified time (newest first)
+                    flowFiles.sort((a, b) => b.modified - a.modified);
+
+                    for (const file of flowFiles) {
+                        const name = file.name.replace('.json', '');
+                        const modified = new Date(file.modified * 1000);
+
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'flow-item';
+
+                        itemEl.innerHTML = `
+                <div class="flow-item-name" onclick="window.flowBuilder.loadFlow('${name}')">${name}</div>
+                <div class="flow-item-date">${modified.toLocaleDateString()}</div>
+                <button class="flow-item-delete" onclick="window.flowBuilder.deleteFlow('${name}', event)">×</button>
+            `;
+
+                        listEl.appendChild(itemEl);
+                    }
+                } catch (error) {
+                    console.error('Error updating flows list:', error);
+                    listEl.innerHTML = '<div class="flow-item">Error loading flows</div>';
+                }
+            }
+
+
+
+            // Add a checkAuth method to verify authentication before API calls
+            async checkAuth() {
+                try {
+                    if (!puter || !puter.auth) {
+                        return false;
+                    }
+                    return await puter.auth.isSignedIn();
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    return false;
+                }
+            }
+
+
+
+
+
+
+            /**
+             * Load a flow
+             */
+            /**
+  * Load a flow
+  */
+            async loadFlow(name) {
+                if (!await this.checkAuth()) {
+                    this.log('error', 'Please sign in to load flows');
+                    return;
+                }
+
+                try {
+                    const path = `.flows/${name}.json`;
+                    const content = await puter.fs.read(path);
+                    const flowData = JSON.parse(await content.text());
+
+                    console.log("Loading flow data:", flowData); // Debug log
+
+                    // Set flow name
+                    document.getElementById('flowNameInput').value = name;
+
+                    // Clear current flow - but preserve structure
+                    this.workspace.innerHTML = '';
+                    this.nodes.clear();
+                    this.connections.clear();
+
+                    // Recreate canvas structure
+                    const canvasContent = document.createElement('div');
+                    canvasContent.className = 'canvas-content';
+                    this.workspace.appendChild(canvasContent);
+
+                    // Apply current zoom
+                    canvasContent.style.transform = `scale(${this.zoomLevel})`;
+                    canvasContent.style.transformOrigin = 'top left';
+                    canvasContent.style.width = `${100 / this.zoomLevel}%`;
+                    canvasContent.style.height = `${100 / this.zoomLevel}%`;
+                    canvasContent.style.position = 'absolute';
+
+                    // Create connection container
+                    this.connectionContainer = document.createElement('div');
+                    this.connectionContainer.className = 'connection-container';
+                    canvasContent.appendChild(this.connectionContainer);
+
+                    // Mappings from saved data to new elements
+                    const nodeIdMap = new Map(); // Maps old IDs to new IDs
+                    const positionIdMap = new Map(); // Maps position IDs to new node IDs
+
+                    // First pass: create all nodes
+                    for (const savedNode of flowData.nodes) {
+                        console.log("Creating node:", savedNode); // Debug log
+                        const newNode = this.createNode(savedNode.type, savedNode.x, savedNode.y);
+
+                        // Store mappings
+                        if (savedNode.id) {
+                            nodeIdMap.set(savedNode.id, newNode.id);
+                        }
+
+                        if (savedNode.positionId) {
+                            positionIdMap.set(savedNode.positionId, newNode.id);
+                        } else {
+                            // Fallback for older saved flows without position IDs
+                            const generatedPositionId = `pos-${savedNode.x}-${savedNode.y}-${savedNode.type}`;
+                            positionIdMap.set(generatedPositionId, newNode.id);
+                        }
+
+                        // Restore settings
+                        if (savedNode.settings) {
+                            const node = this.nodes.get(newNode.id);
+                            if (node) {
+                                node.settings = savedNode.settings;
+
+                                // Update UI
+                                const element = document.getElementById(newNode.id);
+                                const nodeType = this.nodeRegistry.getNodeType(savedNode.type);
+                                if (element && nodeType) {
+                                    element.querySelector('.node-content').innerHTML =
+                                        nodeType.createContent(node);
+                                }
+                            }
+                        }
+                    }
+
+                    console.log("Node ID Map:", nodeIdMap); // Debug log
+                    console.log("Position ID Map:", positionIdMap); // Debug log
+
+                    // Second pass: create all connections
+                    if (flowData.connections && flowData.connections.length > 0) {
+                        console.log("Processing connections:", flowData.connections); // Debug log
+
+                        // Wait for a short delay to ensure all nodes are rendered
+                        await new Promise(resolve => setTimeout(resolve, 50));
+
+                        for (const savedConnection of flowData.connections) {
+                            console.log("Processing connection:", savedConnection); // Debug log
+
+                            let sourceNodeId, targetNodeId;
+
+                            // Try to find source and target node IDs using different strategies
+
+                            // 1. First try position IDs if available
+                            if (savedConnection.sourceNodePositionId && savedConnection.targetNodePositionId) {
+                                sourceNodeId = positionIdMap.get(savedConnection.sourceNodePositionId);
+                                targetNodeId = positionIdMap.get(savedConnection.targetNodePositionId);
+                                console.log("Using position IDs:", sourceNodeId, targetNodeId); // Debug log
+                            }
+
+                            // 2. If that fails, try the old ID mapping
+                            if (!sourceNodeId || !targetNodeId) {
+                                sourceNodeId = nodeIdMap.get(savedConnection.sourceNode);
+                                targetNodeId = nodeIdMap.get(savedConnection.targetNode);
+                                console.log("Using node ID mapping:", sourceNodeId, targetNodeId); // Debug log
+                            }
+
+                            // 3. If that fails too, try direct node IDs (may work if the same session)
+                            if (!sourceNodeId || !targetNodeId) {
+                                if (this.nodes.has(savedConnection.sourceNode) && this.nodes.has(savedConnection.targetNode)) {
+                                    sourceNodeId = savedConnection.sourceNode;
+                                    targetNodeId = savedConnection.targetNode;
+                                    console.log("Using direct node IDs:", sourceNodeId, targetNodeId); // Debug log
+                                }
+                            }
+
+                            if (sourceNodeId && targetNodeId) {
+                                const sourceEl = document.getElementById(sourceNodeId);
+                                const targetEl = document.getElementById(targetNodeId);
+
+                                console.log("Source and target elements:", sourceEl, targetEl); // Debug log
+
+                                if (sourceEl && targetEl) {
+                                    const sourcePort = savedConnection.sourcePort || 0;
+                                    const targetPort = savedConnection.targetPort || 0;
+
+                                    const sourceConnector = sourceEl.querySelector(`.connector.output[data-index="${sourcePort}"]`);
+                                    const targetConnector = targetEl.querySelector(`.connector.input[data-index="${targetPort}"]`);
+
+                                    console.log("Source and target connectors:", sourceConnector, targetConnector); // Debug log
+
+                                    if (sourceConnector && targetConnector) {
+                                        console.log("Creating connection between connectors"); // Debug log
+                                        this.createConnection(sourceConnector, targetConnector);
+                                    } else {
+                                        console.warn(`Could not find connectors for connection: sourcePort=${sourcePort}, targetPort=${targetPort}`);
+                                    }
+                                } else {
+                                    console.warn("Could not find source or target elements");
+                                }
+                            } else {
+                                console.warn("Could not determine source or target node IDs for connection");
+                            }
+                        }
+                    }
+
+                    // Re-render connections
+                    this.updateConnections();
+
+                    // Hide dropdown
+                    document.getElementById('flowsList').style.display = 'none';
+
+                    // Save current state
+                    this.saveState();
+
+                    this.log('success', `Flow "${name}" loaded`);
+                } catch (error) {
+                    console.error('Error loading flow:', error);
+                    this.log('error', `Error loading flow: ${error.message}`);
+                }
+            }
+
+
+
+
+
+
+            /**
+             * Save the current flow
+             */
+            /**
+    * Save the current flow
+    */
+            async saveFlow() {
+                if (!await this.checkAuth()) {
+                    this.log('error', 'Please sign in to save flows');
+                    return;
+                }
+
+                const flowName = document.getElementById('flowNameInput').value.trim();
+                if (!flowName) {
+                    this.log('error', 'Please enter a flow name');
+                    return;
+                }
+
+                try {
+                    // Create .flows directory if it doesn't exist
+                    try {
+                        await puter.fs.mkdir('.flows', { createMissingParents: true });
+                    } catch (error) {
+                        // Ignore if directory already exists
+                        if (error.code !== 'item_with_same_name_exists' &&
+                            error.code !== 'subject_exists') {
+                            console.log('Non-critical error creating .flows directory:', error);
+                        }
+                    }
+
+                    // Add a unique position identifier to each node
+                    const nodesWithPositionId = Array.from(this.nodes.entries()).map(([nodeId, node]) => {
+                        // Create a position ID that will be stable across saves/loads
+                        const positionId = `pos-${node.x}-${node.y}-${node.type}`;
+                        return {
+                            id: nodeId,
+                            positionId: positionId,
+                            type: node.type,
+                            x: node.x,
+                            y: node.y,
+                            settings: node.settings
+                        };
+                    });
+
+                    // Convert connections to include the position IDs
+                    const connectionsWithPositionIds = Array.from(this.connections.values()).map(conn => {
+                        // Find the source and target nodes
+                        const sourceNode = nodesWithPositionId.find(n => n.id === conn.sourceNode);
+                        const targetNode = nodesWithPositionId.find(n => n.id === conn.targetNode);
+
+                        return {
+                            id: conn.id,
+                            sourceNode: conn.sourceNode,
+                            targetNode: conn.targetNode,
+                            sourceNodePositionId: sourceNode ? sourceNode.positionId : null,
+                            targetNodePositionId: targetNode ? targetNode.positionId : null,
+                            sourcePort: conn.sourcePort,
+                            targetPort: conn.targetPort
+                        };
+                    });
+
+                    // Prepare flow data
+                    const flowData = {
+                        name: flowName,
+                        nodes: nodesWithPositionId,
+                        connections: connectionsWithPositionIds,
+                        timestamp: Date.now()
+                    };
+
+                    // Save flow
+                    await puter.fs.write(
+                        `.flows/${flowName}.json`,
+                        JSON.stringify(flowData, null, 2),
+                        { createMissingParents: true }
+                    );
+
+                    this.log('success', `Flow "${flowName}" saved`);
+                    this.updateFlowsList();
+                } catch (error) {
+                    console.error('Error saving flow:', error);
+                    this.log('error', `Error saving flow: ${error.message}`);
+                }
+            }
+
+
+
+
+
+
+
+            /**
+             * Delete a flow
+             */
+            async deleteFlow(name, event) {
+                if (event) {
+                    event.stopPropagation();
+                }
+
+                this.showConfirmModal(
+                    'Delete Flow',
+                    `Are you sure you want to delete "${name}"?`,
+                    'Delete',
+                    'Cancel',
+                    async () => {
+                        try {
+                            await puter.fs.delete(`.flows/${name}.json`);
+                            this.log('success', `Flow "${name}" deleted`);
+                            this.updateFlowsList();
+                        } catch (error) {
+                            console.error('Error deleting flow:', error);
+                            this.log('error', `Error deleting flow: ${error.message}`);
+                        }
+                    }
+                );
+            }
+
+            /**
+             * Run the flow
+             */
+            async runFlow() {
+                if (!await puter.auth.isSignedIn()) {
+                    this.log('error', 'Please sign in to run flows');
+                    return;
+                }
+
+                // If already active, just deactivate and return
+                if (this.activationManager.isActive()) {
+                    this.activationManager.deactivate();
+                    return;
+                }
+
+                // Validate flow before running
+                const validationResult = this.validateFlow();
+                if (!validationResult.isValid) {
+                    this.log('error', validationResult.message);
+                    return;
+                }
+
+                // Find reachable nodes
+                const reachableNodes = this.findReachableNodes();
+
+                // Mark unreachable nodes visually
+                for (const [nodeId, node] of this.nodes.entries()) {
+                    const element = document.getElementById(nodeId);
+                    if (element) {
+                        if (reachableNodes.has(nodeId)) {
+                            element.classList.remove('unreachable');
+                        } else {
+                            element.classList.add('unreachable');
+                            // Add unreachable style if not already in CSS
+                            if (!document.querySelector('style#unreachable-node-style')) {
+                                const style = document.createElement('style');
+                                style.id = 'unreachable-node-style';
+                                style.textContent = `
+                .node.unreachable {
+                    opacity: 0.6;
+                    filter: grayscale(70%);
+                }
+                .node.unreachable::after {
+                    content: "⚠️ Not connected to Start";
+                    position: absolute;
+                    bottom: -25px;
+                    left: 0;
+                    width: 100%;
+                    text-align: center;
+                    font-size: 11px;
+                    color: var(--error-color);
+                    background: rgba(0,0,0,0.7);
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                    pointer-events: none;
+                }
+            `;
+                                document.head.appendChild(style);
+                            }
+                        }
+                    }
+                }
+
+                // Find start nodes (only those with outgoing connections)
+                const startNodes = Array.from(this.nodes.values())
+                    .filter(node => node.type === 'start')
+                    .filter(node => {
+                        return Array.from(this.connections.values())
+                            .some(conn => conn.sourceNode === node.id);
+                    });
+
+                // Initialize nodesToSchedule Set for tracking which nodes need scheduling
+                this.nodesToSchedule = new Set();
+
+                // Activate the flow (starts timers for automatic nodes)
+                this.activationManager.activate();
+
+                // Separate start nodes by trigger type
+                const manualStartNodes = startNodes.filter(node =>
+                    !node.settings?.triggerType || node.settings.triggerType === 'manual'
+                );
+
+                const intervalStartNodes = startNodes.filter(node =>
+                    node.settings?.triggerType === 'interval'
+                );
+
+                const scheduledStartNodes = startNodes.filter(node =>
+                    node.settings?.triggerType === 'scheduled'
+                );
+
+                // For manual start nodes, execute them immediately
+                if (manualStartNodes.length > 0) {
+                    document.getElementById('statusText').textContent = 'Running flow...';
+
+                    for (const startNode of manualStartNodes) {
+                        try {
+                            await this.executeNode(startNode.id);
+                        } catch (error) {
+                            console.error('Flow execution error:', error);
+                            this.log('error', `Flow execution failed: ${error.message}`);
+                        }
+                    }
+                }
+
+                // For interval nodes, execute first run immediately and schedule future runs
+                for (const node of intervalStartNodes) {
+                    try {
+                        // Execute first run
+                        await this.executeNode(node.id);
+
+                        // Then set up timer for future runs
+                        this.activationManager.setupNodeTimer(node);
+                    } catch (error) {
+                        console.error('Flow execution error:', error);
+                        this.log('error', `Flow execution failed: ${error.message}`);
+                    }
+                }
+
+                // For scheduled nodes, just set up the timers
+                for (const node of scheduledStartNodes) {
+                    this.activationManager.setupNodeTimer(node);
+                }
+
+                // If no automatic nodes, deactivate after manual execution
+                const hasAutomaticNodes = intervalStartNodes.length > 0 || scheduledStartNodes.length > 0;
+
+                if (manualStartNodes.length > 0 && !hasAutomaticNodes) {
+                    document.getElementById('statusText').textContent = 'Flow execution completed';
+                    this.activationManager.deactivate();
+                } else {
+                    document.getElementById('statusText').textContent = 'Flow is running';
+                }
+            }
+
+
+
+
+
+
+            /**
+             * Execute a single node
+             */
+            async executeNode(nodeId, input = null, executionPath = new Set()) {
+                // If the flow is not active and this isn't the initial manual execution, stop
+                if (!this.activationManager.isActive() && executionPath.size > 0) {
+                    this.log('info', 'Execution stopped - flow is inactive', nodeId);
+                    return;
+                }
+
+                // Check if the node is part of the reachable flow
+                const reachableNodes = this.findReachableNodes();
+                if (!reachableNodes.has(nodeId)) {
+                    this.log('warning', 'Node is not connected to any Start node', nodeId);
+                    return;
+                }
+
+                // Prevent circular execution
+                if (executionPath.has(nodeId)) {
+                    throw new Error('Circular flow detected');
+                }
+                executionPath.add(nodeId);
+
+                const node = this.nodes.get(nodeId);
+                if (!node) {
+                    throw new Error(`Node '${nodeId}' not found`);
+                }
+
+                const nodeType = this.nodeRegistry.getNodeType(node.type);
+                if (!nodeType) {
+                    throw new Error(`Node type '${node.type}' not found`);
+                }
+
+                try {
+                    // Visual feedback
+                    const element = document.getElementById(nodeId);
+                    element.classList.add('executing');
+
+                    // Call node's execution start hook if available
+                    if (nodeType.onExecutionStart && typeof nodeType.onExecutionStart === 'function') {
+                        nodeType.onExecutionStart(element, node);
+                    }
+
+                    this.log('info', `Executing ${nodeType.title}...`, nodeId);
+
+                    // Create execution context
+                    const context = {
+                        outputIndex: 0,
+                        flowBuilder: this
+                    };
+
+                    // Execute node
+                    const result = await nodeType.execute(node, input, context);
+
+                    // Show success
+                    element.classList.remove('executing');
+                    element.classList.add('success');
+
+                    // Call node's execution complete hook if available
+                    if (nodeType.onExecutionComplete && typeof nodeType.onExecutionComplete === 'function') {
+                        nodeType.onExecutionComplete(element, node, true, result);
+                    } else {
+                        // Default behavior
+                        setTimeout(() => element.classList.remove('success'), 1000);
+                    }
+
+                    // Log result to console with detailed info
+                    if (this.enableDetailedConsoleLogging) {
+                        const nodeInfo = {
+                            nodeId: nodeId,
+                            nodeType: node.type,
+                            nodeTitle: nodeType.title,
+                            input: input,
+                            output: result,
+                            timestamp: new Date().toISOString()
+                        };
+
+                        console.group(`Node Execution: ${nodeType.title} (${nodeId})`);
+                        console.log('Node Information:', nodeInfo);
+                        console.log('Input:', input);
+                        console.log('Output:', result);
+                        console.groupEnd();
+                    }
+
+                    // Log result to UI
+                    if (result !== undefined && result !== null) {
+                        // Truncate long results in log
+                        const logResult = typeof result === 'string' && result.length > 500
+                            ? `${result.substring(0, 500)}... (truncated)`
+                            : result;
+
+                        this.log('success', logResult, nodeId);
+                    }
+
+                    // Find outgoing connections
+                    const outgoingConnections = Array.from(this.connections.values())
+                        .filter(conn => conn.sourceNode === nodeId);
+
+                    // For nodes with multiple outputs, follow the selected output
+                    const connectionsToFollow = nodeType.outputs > 1
+                        ? outgoingConnections.filter(conn => conn.sourcePort === context.outputIndex)
+                        : outgoingConnections;
+
+                    // Execute next nodes
+                    const nextNodePromises = [];
+                    for (const connection of connectionsToFollow) {
+                        const promise = this.executeNode(
+                            connection.targetNode,
+                            result,
+                            new Set(executionPath)
+                        );
+                        nextNodePromises.push(promise);
+                    }
+
+                    // Wait for all downstream nodes to complete
+                    await Promise.all(nextNodePromises);
+
+                    return result;
+                } catch (error) {
+                    console.error(`Error executing node ${nodeId}:`, error);
+
+                    // Visual feedback
+                    const element = document.getElementById(nodeId);
+                    element.classList.remove('executing');
+                    element.classList.add('error');
+
+                    // Call node's execution complete hook if available
+                    if (nodeType.onExecutionComplete && typeof nodeType.onExecutionComplete === 'function') {
+                        nodeType.onExecutionComplete(element, node, false, null);
+                    } else {
+                        // Default behavior
+                        setTimeout(() => element.classList.remove('error'), 1000);
+                    }
+
+                    // Log error to console with detailed info
+                    if (this.enableDetailedConsoleLogging) {
+                        console.group(`Node Execution Error: ${nodeType.title} (${nodeId})`);
+                        console.log('Node Information:', {
+                            nodeId: nodeId,
+                            nodeType: node.type,
+                            nodeTitle: nodeType.title,
+                            input: input,
+                            error: error,
+                            timestamp: new Date().toISOString()
+                        });
+                        console.error('Error:', error);
+                        console.groupEnd();
+                    }
+
+                    this.log('error', error.message, nodeId);
+
+                    // Check if we should deactivate on error for infinite runs
+                    const isStartNode = node.type === 'start';
+                    const isInfiniteRun = isStartNode && node.settings?.triggerType === 'interval' &&
+                        (node.settings?.runCount === 0 || node.settings?.runCount === '0');
+
+                    if (isInfiniteRun || executionPath.size > 0) {
+                        console.log('Error in execution, considering deactivation');
+                        // Only deactivate for non-start nodes or infinite runs
+                        if (!isStartNode || isInfiniteRun) {
+                            console.log('Deactivating flow due to error');
+                            this.activationManager.deactivate();
+                        }
+                    }
+
+                    throw error;
+                }
+            }
+        }
+
+
+        /**
+         * Flow Activation Manager - Handles active flow state and scheduled executions
+         */
+        class FlowActivationManager {
+            constructor(flowBuilder) {
+                this.flowBuilder = flowBuilder;
+                this.active = false;
+                this.intervals = new Map(); // Store interval IDs by node ID
+                this.timeouts = new Map();  // Store timeout IDs by node ID
+                this.runButton = document.getElementById('runFlowBtn');
+            }
+
+            // Add this method to FlowActivationManager
+            logIntervals() {
+                console.log("Active intervals:", Array.from(this.intervals.entries()));
+                console.log("Active timeouts:", Array.from(this.timeouts.entries()));
+            }
+
+
+
+            // Activate the flow (start timers for automatic nodes)
+            // Modified activate method
+            activate() {
+                if (this.active) return;
+
+                this.active = true;
+                this.updateRunButton();
+
+                // Log intervals every 5 seconds for debugging
+                const debugIntervalId = setInterval(() => {
+                    this.logIntervals();
+                }, 5000);
+
+                // Store the debug interval so we can clear it on deactivate
+                this._debugIntervalId = debugIntervalId;
+
+                // Find all start nodes with automated triggers that have connections
+                const startNodes = Array.from(this.flowBuilder.nodes.values())
+                    .filter(node => node.type === 'start' && node.settings?.triggerType !== 'manual')
+                    .filter(node => {
+                        return Array.from(this.flowBuilder.connections.values())
+                            .some(conn => conn.sourceNode === node.id);
+                    });
+
+                // Set up timers for each one
+                for (const node of startNodes) {
+                    this.setupNodeTimer(node);
+                }
+
+                // Update status
+                document.getElementById('statusText').textContent = 'Flow is running';
+                this.flowBuilder.log('info', 'Flow activated');
+            }
+
+
+
+
+            // Deactivate the flow (clear all timers)
+            deactivate() {
+                if (!this.active) return;
+
+                this.active = false;
+                this.updateRunButton();
+
+                // Clear all intervals
+                for (const intervalId of this.intervals.values()) {
+                    clearInterval(intervalId);
+                }
+                this.intervals.clear();
+
+                // Clear all timeouts
+                for (const timeoutId of this.timeouts.values()) {
+                    clearTimeout(timeoutId);
+                }
+                this.timeouts.clear();
+
+                // Clear debug interval
+                if (this._debugIntervalId) {
+                    clearInterval(this._debugIntervalId);
+                    this._debugIntervalId = null;
+                }
+
+                // Update status
+                document.getElementById('statusText').textContent = 'Flow stopped';
+                this.flowBuilder.log('info', 'Flow deactivated');
+            }
+
+
+
+            // Toggle between active and inactive states
+            toggle() {
+                if (this.active) {
+                    this.deactivate();
+                } else {
+                    this.activate();
+                }
+            }
+
+            // Update the run button appearance based on activation state
+            // Update the run button appearance based on activation state
+           // Update the run button appearance based on activation state
+// Update the run button appearance based on activation state
+updateRunButton() {
+    if (this.active) {
+        // Update to Stop Flow with stop icon
+        this.runButton.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="6" width="12" height="12" fill="currentColor"></rect>
+            </svg>
+            Stop Flow
+        `;
+        this.runButton.classList.remove('run');
+        this.runButton.classList.add('stop');
+    } else {
+        // Update to Run Flow with play icon and border elements
+        this.runButton.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21" fill="currentColor"></polygon>
+            </svg>
+            Run Flow
+            <span class="border-bottom"></span>
+            <span class="border-left"></span>
+        `;
+        this.runButton.classList.add('run');
+        this.runButton.classList.remove('stop');
+    }
+}
+
+            // Set up timer for a specific node
+            setupNodeTimer(node) {
+                const nodeId = node.id;
+                const triggerType = node.settings?.triggerType || 'manual';
+
+                // Skip for manual triggers
+                if (triggerType === 'manual') {
+                    console.log(`Node ${nodeId} has manual trigger, skipping timer setup`);
+                    return;
+                }
+
+                // Check if this start node has any outgoing connections
+                const hasConnections = Array.from(this.flowBuilder.connections.values())
+                    .some(conn => conn.sourceNode === nodeId);
+
+                if (!hasConnections) {
+                    console.log(`Node ${nodeId} has no outgoing connections, skipping timer setup`);
+                    return;
+                }
+
+                // Clear any existing timer for this node to avoid duplicates
+                if (this.intervals.has(nodeId)) {
+                    console.log(`Clearing existing interval for node ${nodeId}`);
+                    clearInterval(this.intervals.get(nodeId));
+                    this.intervals.delete(nodeId);
+                }
+
+                if (this.timeouts.has(nodeId)) {
+                    console.log(`Clearing existing timeout for node ${nodeId}`);
+                    clearTimeout(this.timeouts.get(nodeId));
+                    this.timeouts.delete(nodeId);
+                }
+
+                if (triggerType === 'interval') {
+                    const interval = parseInt(node.settings?.interval) || 60;
+                    const intervalUnit = node.settings?.intervalUnit || 'seconds';
+                    const runCount = parseInt(node.settings?.runCount) || 5;
+
+                    let intervalMs = interval * 1000; // Default to seconds
+                    if (intervalUnit === 'minutes') intervalMs = interval * 60 * 1000;
+                    if (intervalUnit === 'hours') intervalMs = interval * 60 * 60 * 1000;
+
+                    console.log(`Setting up interval for node ${nodeId}: ${interval} ${intervalUnit}, run count: ${runCount}, interval ms: ${intervalMs}`);
+
+                    // Create a counter to track executions - start at 1 because first run is done immediately
+                    let currentRun = 1;
+
+                    // Create the execution function
+                    const executeRun = () => {
+                        if (!this.active) {
+                            console.log(`Flow is inactive, skipping execution for node ${nodeId}`);
+                            return;
+                        }
+
+                        currentRun++;
+                        console.log(`Executing run ${currentRun}/${runCount > 0 ? runCount : 'infinite'} for node ${nodeId}`);
+
+                        // Execute the flow starting from this node's outputs
+                        const message = `Interval execution ${currentRun}${runCount > 0 ? ` of ${runCount}` : ' (infinite)'}`;
+                        this.flowBuilder.log('info', `Automatic execution: ${message}`, nodeId);
+
+                        // Find target connections and execute them
+                        const connections = Array.from(this.flowBuilder.connections.values())
+                            .filter(conn => conn.sourceNode === nodeId);
+
+                        console.log(`Found ${connections.length} outgoing connections for node ${nodeId}`);
+
+                        // Use Promise.all to track when all executions are completed
+                        const executionPromises = [];
+
+                        for (const connection of connections) {
+                            const executionPromise = this.flowBuilder.executeNode(
+                                connection.targetNode,
+                                message,
+                                new Set()
+                            ).catch(error => {
+                                console.error(`Error in interval execution:`, error);
+                                // If there's an error and infinite runs, deactivate the flow
+                                if (runCount === 0) {
+                                    console.log(`Deactivating flow due to error in infinite execution`);
+                                    this.deactivate();
+                                }
+                            });
+
+                            executionPromises.push(executionPromise);
+                        }
+
+                        // Check if this is the last run and handle deactivation
+                        if (runCount > 0 && currentRun >= runCount) {
+                            console.log(`Reached maximum runs (${runCount}) for node ${nodeId}, clearing interval`);
+                            if (this.intervals.has(nodeId)) {
+                                clearInterval(this.intervals.get(nodeId));
+                                this.intervals.delete(nodeId);
+                            }
+
+                            // Wait for all executions to complete before deactivating
+                            Promise.all(executionPromises).finally(() => {
+                                // Check if there are no more active timers
+                                if (this.intervals.size === 0 && this.timeouts.size === 0) {
+                                    console.log('All scheduled executions completed, deactivating flow');
+                                    this.deactivate();
+                                    this.flowBuilder.log('info', 'Flow completed all scheduled executions');
+                                }
+                            });
+                        }
+                    };
+
+                    // Skip setting interval if runCount is 1 (one-time execution)
+                    if (runCount === 1) {
+                        console.log(`Node ${nodeId} is configured for a single run, skipping interval setup`);
+                        return;
+                    }
+
+                    // Set up interval for subsequent runs
+                    console.log(`Creating interval with ${intervalMs}ms delay for node ${nodeId}`);
+                    const intervalId = setInterval(executeRun, intervalMs);
+                    this.intervals.set(nodeId, intervalId);
+                    console.log(`Current intervals:`, this.intervals);
+                }
+                else if (triggerType === 'scheduled') {
+                    const startTime = node.settings?.startTime;
+                    if (!startTime) {
+                        console.log(`Node ${nodeId} has no start time set, skipping timer setup`);
+                        return;
+                    }
+
+                    const scheduledTime = new Date(startTime).getTime();
+                    const now = Date.now();
+
+                    if (scheduledTime <= now) {
+                        this.flowBuilder.log('info', `Scheduled time has already passed for node ${nodeId}`, nodeId);
+                        console.log(`Scheduled time ${new Date(scheduledTime).toLocaleString()} has already passed for node ${nodeId}`);
+                        return;
+                    }
+
+                    // Calculate delay
+                    const delayMs = scheduledTime - now;
+                    console.log(`Setting up timeout for node ${nodeId} to execute at ${new Date(scheduledTime).toLocaleString()} (in ${delayMs}ms)`);
+
+                    // Set up timeout
+                    const timeoutId = setTimeout(() => {
+                        if (!this.active) {
+                            console.log(`Flow is inactive, skipping scheduled execution for node ${nodeId}`);
+                            return;
+                        }
+
+                        const message = `Scheduled flow execution at ${new Date(scheduledTime).toLocaleString()}`;
+                        this.flowBuilder.log('info', `Automatic execution: ${message}`, nodeId);
+
+                        // Find target connections and execute them
+                        const connections = Array.from(this.flowBuilder.connections.values())
+                            .filter(conn => conn.sourceNode === nodeId);
+
+                        console.log(`Found ${connections.length} outgoing connections for scheduled node ${nodeId}`);
+                        console.log(`Executing scheduled flow at: ${new Date().toLocaleString()}`);
+
+                        // Use Promise.all to track when all executions are completed
+                        const executionPromises = [];
+
+                        for (const connection of connections) {
+                            const executionPromise = this.flowBuilder.executeNode(
+                                connection.targetNode,
+                                message,
+                                new Set()
+                            ).catch(error => {
+                                console.error(`Error in scheduled execution:`, error);
+                            });
+
+                            executionPromises.push(executionPromise);
+                        }
+
+                        // Remove this timeout from tracking
+                        this.timeouts.delete(nodeId);
+
+                        // Wait for all executions to complete before deactivating
+                        Promise.all(executionPromises).finally(() => {
+                            // Check if there are no more active timers
+                            if (this.intervals.size === 0 && this.timeouts.size === 0) {
+                                console.log('All scheduled executions completed, deactivating flow');
+                                this.deactivate();
+                                this.flowBuilder.log('info', 'Flow completed all scheduled executions');
+                            }
+                        });
+                    }, delayMs);
+
+                    this.timeouts.set(nodeId, timeoutId);
+                    console.log(`Current timeouts:`, this.timeouts);
+                    this.flowBuilder.log('info', `Flow scheduled for ${new Date(scheduledTime).toLocaleString()}`, nodeId);
+                }
+            }
+
+
+            // Check if the flow is currently active
+            isActive() {
+                return this.active;
+            }
+
+            // Cleanup when the builder is reset or page unloaded
+            cleanup() {
+                this.deactivate();
+            }
+        }
+
+
+
+
+        // Add this to the end of your script
+        // Initialize app when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            window.flowBuilder = new FlowBuilder();
+        });
+
+        // Clean up when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (window.flowBuilder && window.flowBuilder.activationManager) {
+                window.flowBuilder.activationManager.cleanup();
+            }
+        });
+    </script>
+</body>
+
+</html>
