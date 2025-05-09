@@ -1,4 +1,4 @@
-/**
+i/**
  * Text to Image Node Module
  * Generates images from text descriptions using AI
  *

@@ -1,22 +1,5 @@
-/**
- * @fileoverview AI Node Module - Handles AI model interaction and text generation
- *
- * This module implements a node type that processes text through various AI models,
- * supporting multiple model providers and configurations. It handles:
- * - Model selection and configuration
- * - System message injection
- * - Temperature control for response randomness
- * - Test mode for development
- * - Response processing for different API formats
- *
- * @module nodes/ai
- * @requires puter.ai
- * @requires window.flowBuilder
- * @requires utils/PerformanceUtils
- */
-
-import { memoize } from '../utils/PerformanceUtils.js';
-
+// AI Node Configuration
+// This file defines the AI node type for the flow builder system
 export default {
     // Node metadata
     title: 'AI',
@@ -27,31 +10,16 @@ export default {
     outputs: 1, // Number of output ports
     
     // Default configuration values for AI node
-    /**
-     * Default configuration settings for the AI node
-     * @typedef {Object} DefaultSettings
-     * @property {string} systemMessage - Custom instructions for the AI model
-     * @property {string} model - Default AI model identifier
-     * @property {number} temperature - Creativity/randomness level (0.0-1.0)
-     * @property {boolean} testMode - Whether to run in test mode without API usage
-     */
     defaultSettings: {
-        systemMessage: '',
-        model: 'gpt-4o-mini',
-        temperature: 0.7,
-        testMode: false
+        systemMessage: '', // Custom instructions for the AI
+        model: 'gpt-4o-mini', // Default AI model
+        temperature: 0.7, // Default creativity level
+        testMode: false // Whether to use API credits
     },
 
 
     // Add this help object inside your AI node definition
-    /**
-     * Help documentation for the AI node
-     * @typedef {Object} HelpContent
-     * @property {string} title - Node title for documentation
-     * @property {string} description - General node description
-     * @property {Array<{title: string, content: string}>} sections - Detailed help sections
-     */
-    help: {
+help: {
     title: "AI Node",
     description: "Processes input text through an AI language model and returns the generated response. This node can be used for text generation, content transformation, summarization, and more.",
     sections: [
@@ -77,13 +45,6 @@ export default {
 
     
     // Format log messages with model information
-    /**
-     * Formats log messages with additional context for AI operations
-     * @param {string|object} message - The message to format
-     * @param {string} type - Message type ('success', 'error', etc.)
-     * @param {Object} node - Node instance containing settings
-     * @returns {string} Formatted message with model info and truncation if needed
-     */
     formatLogMessage: (message, type, node) => {
         // Add model identifier to success messages
         if (type === 'success' && node.settings?.model) {
@@ -97,24 +58,12 @@ export default {
     },
     
     // UI hooks for execution state changes
-    /**
-     * Handles UI updates when node execution begins
-     * @param {HTMLElement} element - Node's DOM element
-     * @param {Object} node - Node instance
-     */
     onExecutionStart: (element, node) => {
         // Show processing indicator when AI node starts execution
         const spinner = element.querySelector('.site-builder-spinner');
         if (spinner) spinner.classList.add('active');
     },
     
-    /**
-     * Handles UI updates when node execution completes
-     * @param {HTMLElement} element - Node's DOM element
-     * @param {Object} node - Node instance
-     * @param {boolean} success - Whether execution was successful
-     * @param {*} result - Execution result data
-     */
     onExecutionComplete: (element, node, success, result) => {
         // Remove the spinning indicator
         const spinner = element.querySelector('.site-builder-spinner');
@@ -139,23 +88,9 @@ export default {
      * @param {Object} node - The node object containing settings and ID
      * @returns {string} HTML string for the node's content
      */
-    /**
-     * Generates the HTML content and styling for the AI node's UI
-     *
-     * Creates a responsive interface with:
-     * - Model selection dropdown
-     * - System message textarea
-     * - Temperature slider control
-     * - Test mode toggle
-     * - Loading spinner for visual feedback
-     *
-     * @param {Object} node - Node instance containing settings and ID
-     * @returns {string} HTML string for node's content
-     *
-     * @note Injects node-specific CSS using a unique style element
-     * @note Uses standardized classes for consistent styling
-     */
     createContent: (node) => {
+        // Generates the UI content for the AI node
+        // Handles dynamic styling and input controls
         const nodeStyleId = `ai-node-style-${node.id}`;
         
         // Remove existing style element if present
@@ -302,25 +237,6 @@ export default {
      * @returns {Promise<string>} The AI-generated response
      * @throws {Error} If API call fails or response processing errors
      */
-    /**
-     * Executes the AI node's core functionality by processing input through the selected AI model
-     *
-     * @param {Object} node - Node instance containing configuration and settings
-     * @param {string} input - Input text to process
-     * @param {Object} context - Execution context object
-     * @returns {Promise<string>} Generated AI response
-     * @throws {Error} If API call fails or response processing errors
-     *
-     * @example
-     * // Standard usage with system message
-     * const response = await execute({
-     *   settings: {
-     *     model: 'gpt-4o-mini',
-     *     systemMessage: 'Act as a helpful assistant',
-     *     temperature: 0.7
-     *   }
-     * }, 'Hello world');
-     */
     execute: async (node, input, context) => {
         try {
             // Build message content based on input and settings
@@ -354,33 +270,11 @@ export default {
             console.log(`Calling AI API with model: ${model}, temperature: ${temperature}, testMode: ${testMode}`);
             console.log(`Message:`, message);
 
-            // Call the puter.ai.chat API with test mode parameter and retry logic
-            let response;
-            const maxRetries = 3;
-            let retryCount = 0;
-            const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-            
-            while (retryCount <= maxRetries) {
-                try {
-                    response = await Promise.race([
-                        puter.ai.chat(message, testMode, {
-                            model: model,
-                            temperature: temperature
-                        }),
-                        delay(10000).then(() => { throw new Error('API timeout'); })
-                    ]);
-                    break;
-                } catch (error) {
-                    retryCount++;
-                    if (retryCount > maxRetries) {
-                        throw error;
-                    }
-                    // Exponential backoff with jitter
-                    const waitTime = Math.min(1000 * Math.pow(2, retryCount), 30000);
-                    const jitter = Math.random() * 500;
-                    await delay(waitTime + jitter);
-                }
-            }
+            // Call the puter.ai.chat API with test mode parameter
+            let response = await puter.ai.chat(message, testMode, {
+                model: model,
+                temperature: temperature
+            });
             
             console.log("API response:", response);
             

@@ -232,28 +232,41 @@ export default {
             // Get the value to check
             let valueToCheck = input;
 
-            // If target property is specified, extract it using utility
+            // If target property is specified, extract it
             if (targetProperty) {
-                valueToCheck = getPropertyByPath(input, targetProperty);
+                try {
+                    // Split by dots to handle nested properties
+                    const props = targetProperty.split('.');
+                    let current = input;
+
+                    for (const prop of props) {
+                        if (current === null || current === undefined) {
+                            valueToCheck = undefined;
+                            break;
+                        }
+                        current = current[prop];
+                    }
+
+                    valueToCheck = current;
+                } catch (error) {
+                    console.error(`Error extracting property ${targetProperty}:`, error);
+                    valueToCheck = undefined;
+                }
             }
-            
+
             let result = false;
 
             if (conditionType === 'custom') {
                 const customCode = node.settings?.customCode || '';
-                // Memoize custom condition function
-                const conditionFn = memoize((input) => {
-                    const fn = new Function('input', `
-                        "use strict";
-                        try {
-                            return Boolean(${customCode || 'false'});
-                        } catch (error) {
-                            throw new Error(\`Custom condition evaluation failed: \${error.message}\`);
-                        }
-                    `);
-                    return fn(input);
-                });
-                
+                const conditionFn = new Function('input', `
+                    "use strict";
+                    try {
+                        return Boolean(${customCode || 'false'});
+                    } catch (error) {
+                        throw new Error(\`Custom condition evaluation failed: \${error.message}\`);
+                    }
+                `);
+
                 result = conditionFn(input);
             } else {
                 // For string operations, ensure strings

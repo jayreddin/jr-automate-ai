@@ -287,30 +287,22 @@ export default {
             
             switch (operation) {
                 case 'read':
-            // Read file with streaming support for large files
-            const file = await puter.fs.getFile(filePath);
-            const reader = file.stream().getReader();
-            const decoder = new TextDecoder();
-            let content = '';
-            
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                content += decoder.decode(value, { stream: true });
-            }
-            
-            // Process based on file type
-            if (fileType === 'text') {
-                return content;
-            } else if (fileType === 'json') {
-                try {
-                    return JSON.parse(content);
-                } catch (e) {
-                    throw new Error(`Invalid JSON file: ${e.message}`);
-                }
-            } else {
-                // For binary, return the original file Blob
-                return file;
+                    // Read file
+                    const content = await puter.fs.read(filePath);
+                    
+                    // Process based on file type
+                    if (fileType === 'text') {
+                        return await content.text();
+                    } else if (fileType === 'json') {
+                        const text = await content.text();
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error(`Invalid JSON file: ${e.message}`);
+                        }
+                    } else {
+                        // Return binary data as-is
+                        return content;
                     }
                     
                 case 'write':

@@ -231,38 +231,17 @@ export default {
             if (!key) {
                 throw new Error('Key is required');
             }
-            
-            const retryKvOperation = async (operation) => {
-                const maxRetries = 3;
-                let retryCount = 0;
-                const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-                
-                while (retryCount <= maxRetries) {
-                    try {
-                        return await operation();
-                    } catch (error) {
-                        retryCount++;
-                        if (retryCount > maxRetries) {
-                            throw error;
-                        }
-                        // Exponential backoff with jitter
-                        const waitTime = Math.min(1000 * Math.pow(2, retryCount), 30000);
-                        const jitter = Math.random() * 500;
-                        await delay(waitTime + jitter);
-                    }
-                }
-            };
-            
+
             switch (node.settings?.operation || 'set') {
                 case 'set':
-                    await retryKvOperation(() => puter.kv.set(key, input));
+                    await puter.kv.set(key, input);
                     return `Stored value for key: ${key}`;
                 case 'get':
-                    return await retryKvOperation(() => puter.kv.get(key));
+                    return await puter.kv.get(key);
                 case 'incr':
-                    return await retryKvOperation(() => puter.kv.incr(key));
+                    return await puter.kv.incr(key);
                 case 'decr':
-                    return await retryKvOperation(() => puter.kv.decr(key));
+                    return await puter.kv.decr(key);
             }
         } catch (error) {
             throw new Error(`Data store operation failed: ${error.message}`);

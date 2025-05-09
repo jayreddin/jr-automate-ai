@@ -308,19 +308,8 @@ export default {
                     break;
             }
             
-            // Execute delay using non-blocking pattern
-            await new Promise(resolve => {
-                const start = Date.now();
-                const checkProgress = () => {
-                    const elapsed = Date.now() - start;
-                    if (elapsed >= actualDelayMs) {
-                        resolve();
-                    } else {
-                        requestAnimationFrame(checkProgress);
-                    }
-                };
-                checkProgress();
-            });
+            // Execute delay with promise
+            await new Promise(resolve => setTimeout(resolve, actualDelayMs));
             
             // Pass through the input
             return input;
