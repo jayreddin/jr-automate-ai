@@ -1,28 +1,30 @@
-# Product Requirements Document (PRD)
+# Product Requirements Document
 
-## Overview
-This document outlines the product vision, objectives, target user personas, and key features for the project.
+## Goals
+*   Improve user experience in the automation builder.
+*   Expand the functionality of the automation builder.
+*   Provide more options for users to create complex automations.
 
-## Objectives
-- Define core functionalities and technical requirements.
-- Set milestones and timelines for development.
-- Establish clear communication channels for feedback and iterations.
+## Target Audience
+*   Existing users of the automation builder.
+*   New users who are looking for an automation solution.
 
-## Features
-- Modular API integration and robust data management.
-- Intuitive user interface with responsive design.
-- Seamless integration of AI functionalities.
+## Proposed UI Changes
+*   Redesign the sidebar for better navigation.
+*   Improve the workspace for easier node arrangement.
+*   Enhance the output panel for clearer feedback.
 
-## Milestones
-- Initial planning and requirement gathering.
-- Prototyping and MVP development.
-- Iterative feedback and product refinement.
+## New Features
+*   Add support for variables.
+*   Implement a debugging mode.
+*   Introduce a version control system.
+
+## New Nodes
+*   HTTP Request Node
+*   Date/Time Node
+*   Conditional Logic Node
 
 ## Success Metrics
-- User adoption and engagement.
-- System performance and reliability.
-- Scalability and maintainability.
-
----
-
-*This document is subject to updates based on further requirements and discovery sessions.*
+*   Increased user engagement (e.g., more automations created).
+*   Improved user satisfaction (e.g., higher ratings).
+*   Reduced support requests (e.g., fewer bug reports).

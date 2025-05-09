@@ -271,7 +271,12 @@ export default {
         try {
             const operation = node.settings?.operation || 'read';
             const filePath = node.settings?.filePath;
-            const fileType = node.settings?.fileType || 'text';
+            let fileType = node.settings?.fileType || 'text';
+            const supportedFileTypes = ['text', 'json', 'binary'];
+            if (!supportedFileTypes.includes(fileType)) {
+                console.warn(`Unsupported file type "${fileType}" detected. Defaulting to "text".`);
+                fileType = 'text';
+            }
             const createParentDirs = node.settings?.createParentDirs !== false;
             const destPath = node.settings?.destPath;
             
@@ -286,37 +291,36 @@ export default {
             };
             
             switch (operation) {
-                case 'read':
-            // Read file with streaming support for large files
-            const file = await puter.fs.getFile(filePath);
-            const reader = file.stream().getReader();
-            const decoder = new TextDecoder();
-            let content = '';
-            
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                content += decoder.decode(value, { stream: true });
-            }
-            
-            // Process based on file type
-            if (fileType === 'text') {
-                return content;
-            } else if (fileType === 'json') {
-                try {
-                    return JSON.parse(content);
-                } catch (e) {
-                    throw new Error(`Invalid JSON file: ${e.message}`);
-                }
-            } else {
-                // For binary, return the original file Blob
-                return file;
+                case 'read': {
+                    // Read file with streaming support for large files
+                    const file = await puter.fs.getFile(filePath);
+                    if (fileType === 'binary') {
+                        // For binary, return the original file Blob
+                        return file;
                     }
-                    
-                case 'write':
+                    const stream = file.stream();
+                    const decoder = new TextDecoder();
+                    let content = '';
+                    for await (const chunk of stream) {
+                        content += decoder.decode(chunk, { stream: true });
+                    }
+                    if (fileType === 'text') {
+                        return content;
+                    } else if (fileType === 'json') {
+                        try {
+                            return JSON.parse(content);
+                        } catch (e) {
+                            throw new Error(`Invalid JSON file: ${e.message}`);
+                        }
+                    } else {
+                        console.warn(`Unsupported file type "${fileType}" encountered. Returning raw content.`);
+                        return content;
+                    }
+                }
+                break;
+                case 'write': {
                     // Handle different input types based on fileType
                     let dataToWrite = input;
-                    
                     if (fileType === 'json' && typeof input === 'object') {
                         // Format JSON with indentation
                         dataToWrite = JSON.stringify(input, null, 2);
@@ -324,15 +328,13 @@ export default {
                         // Convert to Blob for binary writing
                         dataToWrite = new Blob([input]);
                     }
-                    
                     // Write file
                     await puter.fs.write(filePath, dataToWrite, options);
                     return `File written: ${filePath}`;
-                    
-                case 'append':
+                }
+                case 'append': {
                     let existingContent = '';
                     let dataToAppend = input;
-                    
                     // Handle JSON append differently
                     if (fileType === 'json' && typeof input === 'object') {
                         try {
@@ -345,7 +347,6 @@ export default {
                                 // File doesn't exist or isn't valid JSON
                                 existingContent = null;
                             }
-                            
                             // Handle different JSON structures
                             if (Array.isArray(existingContent)) {
                                 // If existing content is an array, add item(s)
@@ -361,7 +362,6 @@ export default {
                                 // Start new object/array
                                 dataToAppend = input;
                             }
-                            
                             // Convert to string with formatting
                             dataToAppend = JSON.stringify(dataToAppend, null, 2);
                         } catch (error) {
@@ -381,10 +381,10 @@ export default {
                         // Binary append not well supported, just overwrite
                         dataToAppend = input;
                     }
-                    
                     // Write appended data
                     await puter.fs.write(filePath, dataToAppend, options);
                     return `File appended: ${filePath}`;
+                }
                 
                 case 'mkdir':
                     // Create directory

@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Automation Builder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JR Automate AI</title>
     <script src="https://js.puter.com/v2/"></script>
 
     <style>
@@ -275,6 +276,7 @@
             overflow-y: auto;
             scrollbar-width: thin !important;
             scrollbar-color: var(--bg-tertiary) var(--bg-secondary) !important;
+            order: 1;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -338,6 +340,7 @@
             flex: 1;
             display: flex;
             overflow: hidden;
+            order: 2;
         }
 
         .workspace {
@@ -360,11 +363,18 @@
         }
 
         .output-panel {
-            width: 300px;
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--node-border);
-            display: flex;
-            flex-direction: column;
+           width: 300px;
+           background: var(--bg-secondary);
+           border-right: 1px solid var(--node-border);
+           display: flex;
+           flex-direction: column;
+           transform: translateX(0);
+           transition: transform 0.3s ease-in-out;
+           order: 3;
+        }
+
+        .output-panel.hidden {
+           transform: translateX(100%);
         }
 
         .output-panel-header {
@@ -815,6 +825,7 @@
             gap: 5px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             z-index: 100;
+            order: 3;
         }
 
         .zoom-btn {
@@ -1222,7 +1233,7 @@
         <div class="workspace-container">
             <div class="workspace" id="workspace"></div>
 
-            <div class="output-panel">
+            <div class="output-panel hidden">
                 <div class="output-panel-header">
                     <span>Output Log</span>
                     <button class="btn clear-btn" id="clearLogBtn">
@@ -1765,19 +1776,22 @@
 
 
             toggleConsoleLogging() {
-    this.enableDetailedConsoleLogging = !this.enableDetailedConsoleLogging;
-    const button = document.getElementById('toggleLoggingBtn');
-    
-    if (button) {
-        if (this.enableDetailedConsoleLogging) {
-            button.textContent = 'Console Logging: ON';
-            button.classList.remove('off');
-        } else {
-            button.textContent = 'Console Logging: OFF';
-            button.classList.add('off');
-        }
-    }
-}
+                this.enableDetailedConsoleLogging = !this.enableDetailedConsoleLogging;
+                const button = document.getElementById('toggleLoggingBtn');
+                const outputPanel = document.querySelector('.output-panel');
+                
+                if (button) {
+                    if (this.enableDetailedConsoleLogging) {
+                        button.textContent = 'Console Logging: ON';
+                        button.classList.remove('off');
+                        outputPanel?.classList.remove('hidden');
+                    } else {
+                        button.textContent = 'Console Logging: OFF';
+                        button.classList.add('off');
+                        outputPanel?.classList.add('hidden');
+                    }
+                }
+            }
 
 
 
@@ -2454,7 +2468,6 @@ updateRunButtonState() {
                 if (!source || !target || source === target) {
                     return false;
                 }
-
                 // Can't connect to same node
                 const sourceNode = source.closest('.node');
                 const targetNode = target.closest('.node');
